@@ -13,3 +13,107 @@ datasource db {
   provider = "mongodb"
   url      = env("DATABASE_URL")
 }
+
+model Utilizador {
+  id      String   @id @default(auto()) @map("_id") @db.ObjectId
+  username String @unique
+  email   String   @unique
+  fullname    String?
+  password String
+  avatar String
+  createdAt DateTime @default(now())
+  externalCalendarId String?
+  eventos Evento[]
+  grupos  GrupoUtilizador[]
+  history History[]
+}
+model Evento {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  title String
+  description String?
+  startDate DateTime
+  endDate DateTime
+  isVirtual Boolean
+  meetingLink String?
+  priority priority
+  status status @default(scheduled)
+  owner Utilizador @relation(fields: [userId], references: [id])
+  userId String @unique @db.ObjectId
+  category category
+  tags String?
+  recurrence Json?
+  externalSync Json?
+  evenros EventoGrupo[]
+  createdAt DateTime? @default(now())
+}
+model Grupo {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  name String
+  description String?
+  grupos  GrupoUtilizador[]
+  createdAt DateTime @default(now())
+  eventos EventoGrupo[]
+}
+model EventoGrupo {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  evento Evento @relation(fields: [eventoId], references: [id])
+  eventoId String @db.ObjectId 
+  grupo Grupo @relation(fields: [grupoId], references: [id])
+  grupoId String @db.ObjectId
+  createdAt DateTime @default(now())
+  @@unique([eventoId, grupoId])
+}
+model GrupoUtilizador {
+  id           String     @id @default(auto()) @map("_id") @db.ObjectId
+  grupo        Grupo      @relation(fields: [grupoId], references: [id])
+  grupoId      String     @db.ObjectId
+  utilizador   Utilizador @relation(fields: [utilizadorId], references: [id])
+  utilizadorId String     @db.ObjectId
+  createdAt DateTime @default(now())
+  @@unique([grupoId, utilizadorId])
+}
+model Chat {
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  name      String?    
+  members   String[]   @db.ObjectId          
+  type      chatType     @default(direct) 
+  messages  Message[]  
+  createdAt DateTime   @default(now())
+}
+model Message {
+  id        String   @id @default(auto()) @map("_id") @db.ObjectId
+  chatId    String   @db.ObjectId
+  chat      Chat     @relation(fields: [chatId], references: [id])
+  senderId  String   @db.ObjectId
+  content   String?
+  timestamp DateTime @default(now())
+  readBy    String[] @db.ObjectId
+  filePath  String?
+}
+model History {
+  id String @id @default(auto()) @map("_id") @db.ObjectId
+  user Utilizador @relation(fields: [userId], references: [id])
+  userId String @db.ObjectId
+  action String
+  createdAt DateTime
+}
+enum chatType {
+  direct
+  group
+}
+enum category {
+  academic
+  work
+  personal
+}
+enum status {
+  scheduled
+  ongoing
+  finished
+  cancelled
+}
+enum priority {
+  LOW
+  MEDIUM
+  HIGH
+}
