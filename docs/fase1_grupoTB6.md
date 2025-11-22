@@ -1,6 +1,6 @@
 ## Indentificação do projeto
 
-Nome: Study Sphere
+Nome: StudySphere
 
 Tema: Aplicação criada para otimizar a organização académica e pessoal de estudantes universitários. 
 
@@ -20,7 +20,7 @@ Versão: 1.0
 Contexto e Motivação
 ---
 
-O StudySphere responde às dificuldades dos estudantes universitários na gestão do tempo, oferecendo um calendário unificado que integra horários académicos, prazos de trabalhos e compromissos pessoais, com funcionalidades de gestão de tarefas e dashboard de produtividade.
+A StudySphere ajuda estudantes a gerir o tempo com um calendário unificado de aulas, prazos e compromissos, permitindo criar grupos, partilhar tarefas e eventos, e acompanhar atividades colaborativas.
 
 **Conjunto de Potenciais Utilizadores**
 
@@ -29,14 +29,14 @@ Foi consultado um pequeno grupo de quatro potenciais utilizadores pessoalmente (
 Objetivos da Aplicação
 ---
 
-A aplicação visa consolidar a gestão de tarefas académicas e pessoais, melhorar a produtividade estudantil, facilitar a colaboração em grupo e garantir acessibilidade e segurança de dados, com integração em ferramentas externas como Google Calendar e Outlook.
+A aplicação visa consolidar a gestão de tarefas académicas e pessoais com integração de ferramentas externas como Google Calendar e Outlook de modo a melhorar a produtividade estudantil. A aplicação permite também que estudantes criem e participem em grupos de estudo, partilhem tarefas e eventos, recebam notificações automáticas sobre alterações de colegas e consultem um histórico de atividades colaborativo.
 
 Principais Utilizadores
 ---
 
 | Tipo de Utilizador   | Descrição  | Principais Ações|
 |---|---|---|
-|Estudante |Utilizador que organiza as suas tarefas académicas e pessoais e participa de grupos de estudo. |Gere o seu tempo através da aplicação.|
+|Estudante |Utilizador que organiza as suas tarefas académicas e pessoais e participa de grupos de estudo. |Gere o seu tempo, cria e participa em grupos, partilha tarefas e eventos, recebe notificações sobre atividades do grupo.|
 
 Requisitos Funcionais
 ---
@@ -44,7 +44,8 @@ Requisitos Funcionais
 - Integrar o horário escolar para ver as aulas que tenho.
 - Calendário unificado com aulas, prazos de trabalhos e eventos pessoais.
 - Sincronizar opcionalmente o meu calendário Google Calendar ou Outlook.
-- Criar grupos com tarefas e eventos iguais.
+- Criar grupos de estudo com tarefas e eventos partilhados entre membros.
+- Partilhar tarefas dentro de grupos (visualizar, editar, marcar como concluída, comentar)
 
 ### Requisitos Funcionais Adicionais
 
@@ -147,8 +148,8 @@ Registo de Ferramentas Utilizadas
 ---
 
 - **ChatGPT** – Apoio na clarificação de requisitos, organização do documento.
-- **Google** Docs – Escrita colaborativa e revisão do documento inicial entre os membros do grupo.
-- **Visual** Studio Code – Edição do ficheiro em Markdown com melhor formatação e 
+- **Google Docs** – Escrita colaborativa e revisão do documento inicial entre os membros do grupo.
+- **Visual Studio Code** – Edição do ficheiro em Markdown com melhor formatação e 
 pré-visualização.
-- **GitHub** - utilizado para organização do repositório do projeto e do ficheiro da fase 1 e colaboração entre os membros da equipa.
+- **GitHub** - Utilizado para organização do repositório do projeto e do ficheiro da fase 1 e colaboração entre os membros da equipa.
 - **Discord** – Comunicação entre os membros do grupo durante esta fase do projeto.
