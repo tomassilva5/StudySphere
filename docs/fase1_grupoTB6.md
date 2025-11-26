@@ -153,9 +153,18 @@ Modelo de Informação
 
 Mockups / Wireframes
 ---
+Foram desenvolvidos mockups iniciais para uma primeira discução com os alunos e com o docente.
+O utilzador (Aluno) achou a app fácil de navegar e apreciou a organização clara entre dashboard, tarefas e calendário.
+
+
 ![Mockups](./imagens/mockups.png)
 
-Os mockups foram mostrados a um estudante universitário. O utilizador achou a app fácil de navegar e apreciou a organização clara entre dashboard, tarefas e calendário. O único ponto negativo referido foi que o dashboard parece um pouco cheio, podendo beneficiar de um visual mais simples. No geral, o feedback foi positivo e confirma a utilidade da aplicação.
+Já o docente reforçou que o objetivo final da aplicação devia ser o trabalho coletivo.
+Para isso foram desenvolvidas novas mockups com o foco de trabalhar em grupo. 
+Abaixo temos as novas mockups desenvolvidas para uma melhor visualização do real objetivo da aplicação
+No geral, o feedback foi positivo e confirma a utilidade da aplicação.
+
+![Mockups](./imagens/mockups_figma.png)
 
 Validação Inicial
 ---
