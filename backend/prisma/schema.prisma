@@ -20,7 +20,6 @@ model Utilizador {
   email   String   @unique
   fullname    String?
   password String
-  avatar String
   createdAt DateTime @default(now())
   externalCalendarId String?
   eventos Evento[]
