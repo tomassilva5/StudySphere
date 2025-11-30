@@ -20,7 +20,7 @@ Versão: 1.0
 Contexto e Motivação
 ---
 
-A StudySphere ajuda estudantes a gerir o tempo com um calendário unificado de aulas, prazos e compromissos, permitindo criar grupos, partilhar tarefas e eventos, e acompanhar atividades colaborativas.
+A StudySphere ajuda estudantes a gerir o tempo com um calendário unificado de prazos e compromissos, permitindo criar grupos, partilhar tarefas e eventos, e acompanhar atividades colaborativas.
 
 **Conjunto de Potenciais Utilizadores**
 
@@ -41,8 +41,7 @@ Principais Utilizadores
 Requisitos Funcionais
 ---
 - Registar e autenticar utilizadores.
-- Integrar o horário escolar para ver as aulas que tenho.
-- Calendário unificado com aulas, prazos de trabalhos e eventos pessoais.
+- Calendário unificado com prazos de trabalhos e eventos pessoais.
 - Sincronizar opcionalmente o meu calendário Google Calendar ou Outlook.
 - Criar grupos de estudo com tarefas e eventos partilhados entre membros.
 - Partilhar tarefas dentro de grupos (visualizar, editar, marcar como concluída, comentar).
