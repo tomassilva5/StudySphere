@@ -1,4 +1,4 @@
-FROM node:22-alpine
+FROM node:22
 
 WORKDIR /app
 COPY package*.json /.
@@ -6,4 +6,5 @@ RUN npm install
 
 COPY . .
 EXPOSE 5000
-CMD npm run dev
+RUN npx next build
+CMD npx next dev

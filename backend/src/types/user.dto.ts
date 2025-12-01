@@ -1,4 +1,4 @@
-export default interface UserDTO {
+export default interface CreateUserDTO {
     username:string;
     fullname:string;
     email:string;
