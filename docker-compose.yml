@@ -1,21 +1,27 @@
 services:
   frontend:
-    image: studysphere_frontend:latest
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     container_name: studysphere_frontend
     depends_on:
       - backend
+    env_file:
+      - .env
     ports:
-      -"5000:5000"
-    working_dir: /app
+      - "5000:5000"
+    command: npx next dev
     volumes:
-      -./:/app
-      -/app/node_modules
+      - ./frontend:/app
+      - /app/node_modules
+      - /app/.next
   backend:
-    image: studysphere_backend:latest
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     container_name: studysphere_backend
     ports:
-      -"3000:3000"
-    working_dir: /backend
+      - "3000:3000"
     volumes:
-      -./:/backend
-      -/backend/node_modules
+      - ./backend:/app
+      - /app/node_modules
