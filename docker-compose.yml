@@ -1,0 +1,21 @@
+services:
+  frontend:
+    image: studysphere_frontend:latest
+    container_name: studysphere_frontend
+    depends_on:
+      - backend
+    ports:
+      -"5000:5000"
+    working_dir: /app
+    volumes:
+      -./:/app
+      -/app/node_modules
+  backend:
+    image: studysphere_backend:latest
+    container_name: studysphere_backend
+    ports:
+      -"3000:3000"
+    working_dir: /backend
+    volumes:
+      -./:/backend
+      -/backend/node_modules
