@@ -1,7 +1,12 @@
 // app/layout.tsx
+'use client';
+
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { AuthProvider } from "./providers/AuthContext";
+import BottomTabs from "./components/BottomTabs";
+import { usePathname } from "next/navigation";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,25 +18,22 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-export const metadata: Metadata = {
-  title: "StudySphere",
-  description: "Organize seus eventos, tarefas e calendários em um único lugar",
-  manifest: "/manifest.json",
-  themeColor: "#06141F", // Cor do tema para PWA (opcional, mas útil para mobile)
-};
+function LayoutContent({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const isAuthPage = pathname === '/login' || pathname === '/register' || pathname === '/loading' || pathname === '/';
 
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
   return (
     <html lang="pt" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <AuthProvider>
+          {children}
+          {!isAuthPage && <BottomTabs />}
+        </AuthProvider>
       </body>
     </html>
   );
 }
+
+export default LayoutContent;
