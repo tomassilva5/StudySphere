@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 
-export default function Home() {
+export default function Loading() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-between bg-zinc-50 dark:bg-black py-12">
       {/* Imagem no topo */}
