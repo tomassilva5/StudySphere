@@ -2,8 +2,8 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/app/providers/AuthContext';
-import { HiOutlineHome, HiOutlineCheckCircle, HiOutlineCalendar, HiBars3 } from 'react-icons/hi2';
-import { IoMenu } from "react-icons/io5";
+import { HiOutlineHome, HiOutlineCheckCircle, HiBars3 } from 'react-icons/hi2';
+import { MdGroups } from "react-icons/md";
 
 export default function BottomTabs() {
   const pathname = usePathname();
@@ -16,7 +16,7 @@ export default function BottomTabs() {
   const tabs = [
     { name: 'Home', href: '/dashboard', Icon: HiOutlineHome },
     { name: 'Tarefas', href: '/tasks', Icon: HiOutlineCheckCircle },
-    { name: 'Calendário', href: '/calendar', Icon: HiOutlineCalendar },
+    { name: 'Grupos', href: '/groups', Icon: MdGroups },
     { name: 'Configurações', href: '/settings', Icon: HiBars3 },
   ];
 
