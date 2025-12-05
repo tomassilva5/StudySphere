@@ -1,13 +1,17 @@
-FROM node:22-alpine
+FROM node:22
 
 WORKDIR /app
 
-COPY package* ./
+COPY package*.json ./
 
-RUN npm install
+RUN npm ci
 
-COPY . .
+COPY tsconfig.json ./
+COPY src ./src
+COPY prisma ./prisma
+RUN npx prisma generate
+RUN npm run build
 
 EXPOSE 3000
-
-CMD ["node", "index.js"]
+USER node
+CMD ["node", "dist/index.js"]

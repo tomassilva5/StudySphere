@@ -1,14 +1,20 @@
 import userService from "../services/user.service";
+import CreateUserDTO from "../types/user.dto";
 import UserDTO from "../types/user.dto";
-
+import { Request, Response } from "express";
 export default {
-    async getAll(req, res){
+    async getAll(req:Request, res:Response){
         const users = await userService.getAll()
         res.json(users)
     },
-    async create(req, res){
-        const data:UserDTO = req.body
+    async getUser(req:Request, res:Response){
+        const data:UserDTO = req.body;
+        const users = await userService.getUser(data)
+        res.json(users)
+    },
+    async create(req:Request, res:Response){
+        const data:CreateUserDTO = req.body
         const user = await userService.create(data)
-        res.status(201).json(user)
+        res.status(201)
     }
 }

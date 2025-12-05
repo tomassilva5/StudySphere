@@ -6,5 +6,8 @@ export default {
     },
     create(data:UserDTO){
         return userDb.create_user(data)
+    },
+    getUser(data:UserDTO){
+        return userDb.getUser(data)
     }
 }

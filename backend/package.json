@@ -1,11 +1,18 @@
 {
   "dependencies": {
     "@prisma/client": "6.19",
+    "bcryptjs": "^3.0.3",
+    "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.2.3",
     "jsonwebtoken": "^9.0.2"
   },
+  "scripts": {
+    "build": "tsc --build && prisma generate"
+  },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cookie-parser": "^1.4.10",
     "@types/express": "^5.0.5",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^24.10.1",
