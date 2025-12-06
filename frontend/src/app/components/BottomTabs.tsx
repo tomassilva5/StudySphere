@@ -9,7 +9,7 @@ export default function BottomTabs() {
   const pathname = usePathname();
   const { isAuthenticated } = useAuth();
 
-  if (!isAuthenticated || pathname === '/login' || pathname === '/register' || pathname === '/loading') {
+  if (!isAuthenticated || pathname === '/login' || pathname === '/register' || pathname === '/loading' || pathname === '/calendar') {
     return null;
   }
 
@@ -29,22 +29,17 @@ export default function BottomTabs() {
         border: '1px solid #1C3B4F',
       }}
     >
-      <div className="flex justify-around items-center h-full w-full px-4">
+      <div className="flex justify-around items-center h-full w-full">
         {tabs.map((tab) => {
           const isActive = pathname === tab.href;
           const Icon = tab.Icon;
-
           return (
             <Link
               key={tab.href}
               href={tab.href}
-              className={`flex flex-col items-center justify-center h-full flex-1 ${
-                isActive ? 'text-white' : 'text-white/70 hover:text-white'
-              }`}
+              className="flex flex-col items-center justify-center h-full flex-1"
             >
-              <div className={`flex items-center justify-center h-12 w-full ${isActive ? 'bg-[#1C3B4F] rounded-full' : ''}`}>
-                <Icon className="text-3xl" />
-              </div>
+              <Icon className={`text-3xl ${isActive ? 'text-white' : 'text-gray-400'}`} />
             </Link>
           );
         })}

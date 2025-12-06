@@ -1,35 +1,35 @@
-// app/layout.tsx
-'use client';
-
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "./providers/AuthContext";
+import { TaskProvider } from "./providers/TaskContext";
 import BottomTabs from "./components/BottomTabs";
-import { usePathname } from "next/navigation";
+import PageTransition from "./components/PageTransition";
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
   subsets: ["latin"],
+  variable: "--font-geist-sans",
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
   subsets: ["latin"],
+  variable: "--font-geist-mono",
 });
 
-function LayoutContent({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const isAuthPage = pathname === '/login' || pathname === '/register' || pathname === '/loading' || pathname === '/';
+export const metadata: Metadata = {
+  title: "StudySphere",
+  description: "Gerencie suas tarefas e tempo de estudo",
+};
 
+function LayoutContent({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt" suppressHydrationWarning>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <AuthProvider>
-          {children}
-          {!isAuthPage && <BottomTabs />}
+          <TaskProvider>
+            <PageTransition>{children}</PageTransition>
+            <BottomTabs />
+          </TaskProvider>
         </AuthProvider>
       </body>
     </html>
