@@ -2,11 +2,9 @@
 import { useState } from 'react';
 import { FiCheckSquare, FiClock, FiTrash2, FiEdit2, FiPlus } from 'react-icons/fi';
 import { useTasks } from '@/app/providers/TaskContext';
-
 // Tipos Globais
 type TaskType = 'Universidade' | 'Estudo Individual' | 'Estudo de Grupo' | 'Eventos Pessoais' | 'Lazer';
 type RepeatType = 'Nunca' | 'Todos os dias' | 'Todas as semanas' | 'Todos os meses';
-
 interface Task {
   id: string;
   title: string;
@@ -17,7 +15,6 @@ interface Task {
   duration: number;
   completed: boolean;
 }
-
 // Constantes Globais
 const typeColors: Record<TaskType, string> = {
   'Universidade': 'bg-green-500',
@@ -26,7 +23,6 @@ const typeColors: Record<TaskType, string> = {
   'Eventos Pessoais': 'bg-red-500',
   'Lazer': 'bg-yellow-500',
 };
-
 const typeLabels: Record<TaskType, string> = {
   'Universidade': 'Aulas',
   'Estudo Individual': 'Estudo',
@@ -34,7 +30,6 @@ const typeLabels: Record<TaskType, string> = {
   'Eventos Pessoais': 'Eventos',
   'Lazer': 'Lazer',
 };
-
 // Componente TaskItem
 // Componente TaskItem
 function TaskItem({ task, toggleTask }: { task: Task; toggleTask: (id: string) => void }) {
@@ -79,8 +74,6 @@ function TaskItem({ task, toggleTask }: { task: Task; toggleTask: (id: string) =
     </div>
   );
 }
-
-
 // Componente AddTaskModal
 function AddTaskModal({
   onClose,
@@ -96,7 +89,6 @@ function AddTaskModal({
   const [repeat, setRepeat] = useState<RepeatType>('Nunca');
   const [showStartTimePicker, setShowStartTimePicker] = useState(false);
   const [showEndTimePicker, setShowEndTimePicker] = useState(false);
-
   const handleAdd = () => {
     onAdd({ title, type, startTime, endTime, repeat });
     setTitle('');
@@ -104,16 +96,13 @@ function AddTaskModal({
     setEndTime('10:00');
     setRepeat('Nunca');
   };
-
   const parseTime = (time: string) => {
     const [hours, minutes] = time.split(':').map(Number);
     return { hours, minutes };
   };
-
   const formatTime = (hours: number, minutes: number) => {
     return `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
   };
-
   const incrementTime = (time: string, minutes: number) => {
     const { hours, minutes: currentMinutes } = parseTime(time);
     const totalMinutes = hours * 60 + currentMinutes + minutes;
@@ -121,7 +110,6 @@ function AddTaskModal({
     const newMinutes = totalMinutes % 60;
     return formatTime(newHours, newMinutes);
   };
-
   const decrementTime = (time: string, minutes: number) => {
     const { hours, minutes: currentMinutes } = parseTime(time);
     const totalMinutes = hours * 60 + currentMinutes - minutes;
@@ -129,10 +117,8 @@ function AddTaskModal({
     const newMinutes = ((totalMinutes % 60) + 60) % 60;
     return formatTime(newHours, newMinutes);
   };
-
   const TimePicker = ({ time, setTime, onClose }: { time: string; setTime: (time: string) => void; onClose: () => void }) => {
     const { hours, minutes } = parseTime(time);
-
     return (
       <div className="fixed inset-0 flex items-center justify-center p-4 z-30 bg-black/50 backdrop-blur-sm">
         <div className="bg-[#1C3B4F] rounded-xl p-6 w-72">
@@ -140,7 +126,6 @@ function AddTaskModal({
             <h3 className="text-white font-medium">Selecionar horário</h3>
             <button onClick={onClose} className="text-white text-xl">&times;</button>
           </div>
-
           <div className="flex justify-center mb-4">
             <div className="text-center">
               <button
@@ -174,7 +159,6 @@ function AddTaskModal({
               </button>
             </div>
           </div>
-
           <div className="grid grid-cols-3 gap-2">
             {['00:00', '06:00', '12:00', '18:00'].map((preset) => (
               <button
@@ -186,7 +170,6 @@ function AddTaskModal({
               </button>
             ))}
           </div>
-
           <div className="mt-4 flex justify-end">
             <button
               onClick={onClose}
@@ -199,7 +182,6 @@ function AddTaskModal({
       </div>
     );
   };
-
   return (
     <div className="fixed inset-0 flex items-center justify-center p-4 z-20">
       <div className="absolute inset-0 bg-black/30 backdrop-blur-sm" onClick={onClose} />
@@ -305,29 +287,28 @@ function AddTaskModal({
     </div>
   );
 }
-
-// Página Principal
-// ... (todos os imports e tipos anteriores permanecem iguais)
-
 // Página Principal
 export default function TasksPage() {
   const { tasks, addTask, toggleTask } = useTasks();
   const [showAddModal, setShowAddModal] = useState(false);
-
-  const handleAddTask = (task: Omit<Task, 'id' | 'duration' | 'completed'>) => {
-    addTask(task);
-    setShowAddModal(false);
+  const handleAddTask = (task: Omit<Task, 'id' | 'completed' | 'duration'>) => {
+    const duration = task.startTime && task.endTime
+      ? (new Date(`1970-01-01T${task.endTime}:00`).getTime() - new Date(`1970-01-01T${task.startTime}:00`).getTime()) / (1000 * 60 * 60)
+      : 0;
+    addTask({
+      ...task,
+      id: Date.now().toString(),
+      duration,
+      completed: false,
+    });
   };
-
   const groupedTasks = tasks.reduce<Record<TaskType, Task[]>>((acc, task) => {
     if (!acc[task.type]) acc[task.type] = [];
     acc[task.type].push(task);
     return acc;
   }, {} as Record<TaskType, Task[]>);
-
   return (
     <div className="flex min-h-screen flex-col pb-20" style={{ backgroundColor: '#06141F' }}>
-      {/* Restante do código permanece igual */}
       <div className="p-4">
         <p className="text-teal-400 text-sm" aria-live="polite">
           {new Date().toLocaleDateString('pt-PT', {
@@ -381,3 +362,4 @@ export default function TasksPage() {
     </div>
   );
 }
+

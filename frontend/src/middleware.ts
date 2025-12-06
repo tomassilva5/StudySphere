@@ -30,7 +30,7 @@ export function middleware(request: NextRequest) {
 
   // Se não tem token e tenta aceder a rota protegida → redireciona para login
   if (!token && protectedRoutes.includes(pathname)) {
-    return NextResponse.redirect(new URL('/login', request.url));//alterar para /test/login para testar a app sem a pagina de login com bypass 
+    return NextResponse.redirect(new URL('/login', request.url));
   }
 
   return NextResponse.next();
