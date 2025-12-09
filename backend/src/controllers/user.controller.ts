@@ -9,7 +9,7 @@ export default {
     },
     async getUser(req:Request, res:Response){
         const data:UserDTO = req.body;
-        const users = await userService.getUser(data)
+        const users = await userService.loginUser(data)
         res.json(users)
     },
     async create(req:Request, res:Response){
