@@ -4,11 +4,13 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/app/providers/AuthContext';
 import InputField from '../components/InputField';
 import { HiCheck, HiX } from "react-icons/hi";
 
 export default function RegisterPage() {
     const router = useRouter();
+    const { login } = useAuth();
     
     const [name, setName] = useState('');
     const [username, setUsername] = useState('');
@@ -45,9 +47,28 @@ export default function RegisterPage() {
         if (!isFormValid) return;
 
         setIsLoading(true);
-        console.log('Registering:', { name, username, email });
 
-        setTimeout(() => {
+        try {
+            // TODO: Integrar com API de backend
+            // const response = await fetch('/api/auth/register', {
+            //   method: 'POST',
+            //   headers: { 'Content-Type': 'application/json' },
+            //   body: JSON.stringify({ name, username, email, password }),
+            // });
+            // const data = await response.json();
+            // if (!response.ok) throw new Error(data.message);
+
+            // Simulação: criar utilizador e autenticar
+            const mockToken = `token-${Date.now()}`;
+            const userData = { name, username, email };
+            
+            // Autentica após registar
+            login(mockToken, userData);
+            
+            // Redireciona para dashboard
+            router.push('/dashboard');
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Erro ao registar');
             setIsLoading(false);
             router.push('/login');
         }, 1500);
@@ -135,6 +156,12 @@ export default function RegisterPage() {
                 >
                     {isLoading ? "A criar conta..." : "Registar"}
                 </button>
+
+                {error && (
+                    <div className="w-full max-w-sm p-3 rounded-lg bg-red-900/30 border border-red-500 text-red-200 text-sm">
+                        {error}
+                    </div>
+                )}
 
                 <Link href="/login" className="w-full max-w-sm">
                     <button type="button" className="w-full rounded-xl border-2 border-[#6EE7B7] py-3.5 text-[#6EE7B7] font-bold tracking-wide hover:bg-[#6EE7B7] hover:text-[#06141F] transition-all">

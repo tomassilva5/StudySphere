@@ -7,7 +7,16 @@ export default {
     create(data:UserDTO){
         return userDb.create_user(data)
     },
-    getUser(data:UserDTO){
-        return userDb.getUser(data)
-    }
+    loginUser(data:UserDTO){
+        return userDb.verifypassword(data)
+    },
+    getUsernames(){
+        return userDb.getNames()
+    },
+    getSpecificUsernames(username:string){
+        return  userDb.getVariousUsernames(username)
+    },
+    userExists(username:string){
+        return userDb.isUsernameIn(username)
+    },
 }

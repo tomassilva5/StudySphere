@@ -21,7 +21,7 @@ export default {
                 username:true
             }
         })
-        const usernames = users.map((user) => user.username)
+        const usernames = users.map((user: { username: any; }) => user.username)
         return usernames
     },
     async getVariousUsernames(username:string){
@@ -33,7 +33,7 @@ export default {
                 }
             }
         })
-        const usernames = users.map((user) => user.username)
+        const usernames = users.map((user: { username: any; }) => user.username)
         return usernames
     },
     async getUser(data:UserDTO){

@@ -4,10 +4,12 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/app/providers/AuthContext';
 import InputField from '../components/InputField';
 
 export default function LoginPage() {
     const router = useRouter();
+    const { login } = useAuth();
     
     const [identifier, setIdentifier] = useState('');
     const [password, setPassword] = useState('');
@@ -26,7 +28,10 @@ export default function LoginPage() {
         setTimeout(() => {
             setIsLoading(false);
             router.push('/dashboard');
-        }, 1500);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Erro ao fazer login');
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -80,6 +85,12 @@ export default function LoginPage() {
                     >
                         {isLoading ? "A entrar..." : "Entrar"}
                     </button>
+
+                    {error && (
+                        <div className="p-3 rounded-lg bg-red-900/30 border border-red-500 text-red-200 text-sm">
+                            {error}
+                        </div>
+                    )}
                 </form>
             </div>
 
