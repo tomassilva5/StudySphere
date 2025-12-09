@@ -100,7 +100,7 @@ export default function Dashboard() {
   };
 
   const handleViewFullCalendar = () => {
-    router.push('/calendar'); // Navegação para a página de calendário completo
+    router.push('/calendar'); 
   };
 
   const handleViewMoreTasks = () => {
@@ -166,18 +166,7 @@ export default function Dashboard() {
           ))}
         </div>
       </div>
-
-      {/* Botão */}
-      <div className="mx-4 mb-4">
-        <button
-          className="w-full py-3 rounded-lg font-medium flex items-center justify-center gap-2"
-          style={{ background: 'linear-gradient(to right, #57F177, #4CB2D8)' }}
-          onClick={handleViewMoreTasks}
-        >
-          Ver mais tarefas
-          <FiPlusCircle className="text-white" />
-        </button>
-      </div>
     </div>
   );
 }
+  
