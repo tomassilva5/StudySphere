@@ -1,3 +1,4 @@
+import { verify } from "crypto";
 import {prisma} from "../lib/prisma";
 import UserDTO from "../types/user.dto";
 import bcrypt from "bcryptjs";
@@ -14,19 +15,47 @@ export default {
             fullname: data.fullname
         }})
     },
-    getNames(){
-        return prisma.utilizador.findMany({
+    async getNames(){
+        const users = await prisma.utilizador.findMany({
             select:{
                 username:true
             }
         })
+        const usernames = users.map((user) => user.username)
+        return usernames
     },
-    getUser(data:UserDTO){
-        return prisma.utilizador.findMany({
-            select:{
-                username:true,
-                password:true
+    async getVariousUsernames(username:string){
+        const users = await prisma.utilizador.findMany({
+            where:{
+                username: {
+                    contains: username,
+                    mode: 'insensitive'
+                }
             }
         })
+        const usernames = users.map((user) => user.username)
+        return usernames
     },
+    async verifypassword(data:UserDTO){
+        const user = await prisma.utilizador.findUnique({
+            where:{
+                username: data.username
+            }
+        })
+        if(!user) return false
+        const result = await bcrypt.compare(data.password, user.password)
+        return result
+    },
+    async isUsernameIn(username:string){
+        const usernames = await prisma.utilizador.findMany({
+            where:{
+                username: {
+                    contains: username,
+                    mode: 'insensitive'
+                }
+            }
+        })
+        const bool = usernames ? true : false
+        return bool
+    }
 }

@@ -49,7 +49,7 @@ model Grupo {
   name String
   description String?
   members  GrupoUtilizador[]
-  createdAt DateTime @default(now())
+  createdAt DateTime? @default(now())
   eventos EventoGrupo[]
 }
 model EventoGrupo {
@@ -84,7 +84,7 @@ model Message {
   chat      Chat     @relation(fields: [chatId], references: [id])
   senderId  String   @db.ObjectId
   content   String?
-  timestamp DateTime @default(now())
+  timestamp DateTime? @default(now())
   readBy    String[] @db.ObjectId
   filePath  String?
 }
