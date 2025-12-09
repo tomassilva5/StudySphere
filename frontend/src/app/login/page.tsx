@@ -46,7 +46,7 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="flex min-h-screen flex-col" >
+        <div className="flex min-h-screen flex-col" style={{background: 'var(--background)'}} >
 
             <div className="flex-1 flex flex-col items-center justify-start pt-6 px-6">
                 

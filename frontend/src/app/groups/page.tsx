@@ -20,12 +20,7 @@ export default function Groups() {
   };
 
   return (
-    <div
-      className="min-h-screen pb-24"
-      style={{
-        backgroundColor: '#06141F',
-      }}
-    >
+    <div className="min-h-screen pb-24" style={{ background: 'var(--background)'}}>
       <div className="max-w-2xl mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold text-white mb-8">Grupos</h1>
 

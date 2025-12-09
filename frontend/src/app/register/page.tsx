@@ -49,7 +49,7 @@ export default function RegisterPage() {
     };
 
     return (
-        <div className="flex h-screen flex-col overflow-hidden">
+        <div className="flex h-screen flex-col overflow-hidden" style={{background: 'var(--background)'}}>
 
             <div className="flex-1 flex flex-col items-center justify-start pt-4 px-6">
                 

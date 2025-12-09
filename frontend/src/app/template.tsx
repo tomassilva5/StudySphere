@@ -22,15 +22,17 @@ export default function Template({ children }: { children: React.ReactNode }) {
   }, [pathname]); 
 
   return (
-    <div
-      key={pathname} 
-      className={`w-full h-full transition-all duration-500 ease-out transform ${
-        visible 
-          ? "opacity-100 translate-y-0" 
-          : `opacity-0 ${startPosition}` 
-      }`}
-    >
-      {children}
+    <div className="w-full min-h-screen" style={{ background: 'var(--background)' }}>
+      <div
+        key={pathname} 
+        className={`w-full h-full transition-all duration-500 ease-out transform ${
+          visible 
+            ? "opacity-100 translate-y-0" 
+            : `opacity-0 ${startPosition}` 
+        }`}
+      >
+        {children}
+      </div>
     </div>
   );
 }
