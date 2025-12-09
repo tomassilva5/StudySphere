@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 :root {
-  --background: #06141F; 
+  --background: linear-gradient(to bottom, #06141F 60%, #1C3B4F 100%); 
   --foreground: #ededed; 
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
