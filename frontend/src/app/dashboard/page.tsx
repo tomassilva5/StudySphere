@@ -108,7 +108,7 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col pb-20" style={{ backgroundColor: '#06141F' }}>
+    <div className="flex min-h-screen flex-col pb-20" style={{ backgroundColor: 'var(--background)' }}>
       {/* Cabeçalho */}
       <div className="p-4">
         <div className="text-teal-400 font-medium">

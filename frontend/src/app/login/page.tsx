@@ -4,27 +4,49 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/app/providers/AuthContext';
 import InputField from '../components/InputField';
 
 export default function LoginPage() {
     const router = useRouter();
+    const { login } = useAuth();
     
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
+        setError('');
         setIsLoading(true);
-        console.log('Logging in with', { email, password });
-        setTimeout(() => {
-            setIsLoading(false);
+        
+        try {
+            // TODO: Integrar com API de backend
+            // const response = await fetch('/api/auth/login', {
+            //   method: 'POST',
+            //   headers: { 'Content-Type': 'application/json' },
+            //   body: JSON.stringify({ email, password }),
+            // });
+            // const data = await response.json();
+            // if (!response.ok) throw new Error(data.message);
+
+            // Simulação: token mock (substituir com API real)
+            const mockToken = `token-${Date.now()}`;
+            
+            // Autentica usando o contexto
+            login(mockToken);
+            
+            // Redireciona para dashboard
             router.push('/dashboard');
-        }, 1500);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Erro ao fazer login');
+            setIsLoading(false);
+        }
     };
 
     return (
-        <div className="flex min-h-screen flex-col">
+        <div className="flex min-h-screen flex-col" >
 
             <div className="flex-1 flex flex-col items-center justify-start pt-6 px-6">
                 
@@ -81,6 +103,12 @@ export default function LoginPage() {
                     >
                         {isLoading ? "A entrar..." : "Entrar"}
                     </button>
+
+                    {error && (
+                        <div className="p-3 rounded-lg bg-red-900/30 border border-red-500 text-red-200 text-sm">
+                            {error}
+                        </div>
+                    )}
                 </form>
             </div>
 

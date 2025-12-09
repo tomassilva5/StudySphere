@@ -4,31 +4,52 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/app/providers/AuthContext';
 import InputField from '../components/InputField';
 
 export default function RegisterPage() {
     const router = useRouter();
+    const { login } = useAuth();
     
     const [name, setName] = useState('');
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
+    const [error, setError] = useState('');
 
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
-
+        setError('');
         setIsLoading(true);
-        console.log('Registering:', { name, username, email });
 
-        setTimeout(() => {
+        try {
+            // TODO: Integrar com API de backend
+            // const response = await fetch('/api/auth/register', {
+            //   method: 'POST',
+            //   headers: { 'Content-Type': 'application/json' },
+            //   body: JSON.stringify({ name, username, email, password }),
+            // });
+            // const data = await response.json();
+            // if (!response.ok) throw new Error(data.message);
+
+            // Simulação: criar utilizador e autenticar
+            const mockToken = `token-${Date.now()}`;
+            const userData = { name, username, email };
+            
+            // Autentica após registar
+            login(mockToken, userData);
+            
+            // Redireciona para dashboard
+            router.push('/dashboard');
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Erro ao registar');
             setIsLoading(false);
-            router.push('/login');
-        }, 1500);
+        }
     };
 
     return (
-        <div className="flex h-screen flex-col overflow-hidden"> 
+        <div className="flex h-screen flex-col overflow-hidden">
 
             <div className="flex-1 flex flex-col items-center justify-start pt-4 px-6">
                 
@@ -105,6 +126,12 @@ export default function RegisterPage() {
                 >
                     {isLoading ? "A criar conta..." : "Registar"}
                 </button>
+
+                {error && (
+                    <div className="w-full max-w-sm p-3 rounded-lg bg-red-900/30 border border-red-500 text-red-200 text-sm">
+                        {error}
+                    </div>
+                )}
 
                 <Link href="/login" className="w-full max-w-sm">
                     <button 
