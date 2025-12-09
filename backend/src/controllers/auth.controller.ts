@@ -7,7 +7,7 @@ export function authController(req: Request, res:Response, next: NextFunction){
     if (!token) return res.status(401).json({message:"Missing Token"})
     try{
         const payload =  jwt.verify(token, ACCESS_TOKEN_SECRET) as any;
-        (req as any).userId = payload.sub;
+        (req as any).username = payload.sub;
         next();
     } catch (err){
         return res.status(401).json({message: "Invalid/Expired Token"})
