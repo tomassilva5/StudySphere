@@ -4,7 +4,6 @@ import "./globals.css";
 import { AuthProvider } from "./providers/AuthContext";
 import { TaskProvider } from "./providers/TaskContext";
 import BottomTabs from "./components/BottomTabs";
-import PageTransition from "./components/PageTransition";
 
 const geistSans = Geist({
   subsets: ["latin"],
@@ -24,10 +23,18 @@ export const metadata: Metadata = {
 function LayoutContent({ children }: { children: React.ReactNode }) {
   return (
     <html lang="pt" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+      <body 
+        className={`
+          ${geistSans.variable} ${geistMono.variable} antialiased 
+          min-h-screen 
+          bg-gradient-to-b from-[#06141F] from-60% to-[#1C3B4F]
+        `}
+      >
         <AuthProvider>
           <TaskProvider>
-            <PageTransition>{children}</PageTransition>
+            
+            {children} 
+
             <BottomTabs />
           </TaskProvider>
         </AuthProvider>
