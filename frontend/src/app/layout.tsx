@@ -26,8 +26,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
       <body 
         className={`
           ${geistSans.variable} ${geistMono.variable} antialiased 
-          min-h-screen 
-          bg-gradient-to-b from-[#06141F] from-60% to-[#1C3B4F]
+          min-h-screen
         `}
       >
         <AuthProvider>

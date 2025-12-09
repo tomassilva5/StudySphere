@@ -9,14 +9,20 @@ import InputField from '../components/InputField';
 export default function LoginPage() {
     const router = useRouter();
     
-    const [email, setEmail] = useState('');
+    const [identifier, setIdentifier] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
+    // Validação para ativar/desativar o botão
+    const isFormValid = identifier.trim().length > 0 && password.trim().length > 0;
+
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
+        
+        if (!isFormValid) return;
+
         setIsLoading(true);
-        console.log('Logging in with', { email, password });
+        console.log('Logging in with', { identifier, password });
         setTimeout(() => {
             setIsLoading(false);
             router.push('/dashboard');
@@ -24,21 +30,14 @@ export default function LoginPage() {
     };
 
     return (
-        <div className="flex min-h-screen flex-col">
+        <div className="flex min-h-screen flex-col " style={{background: 'var(--background)'}}>
 
             <div className="flex-1 flex flex-col items-center justify-start pt-6 px-6">
                 
                 <div className="mb-4 flex flex-col items-center text-center">
                     <div className="relative mb-2 h-[268px] w-[268px]">
-                        <Image
-                            src="/Logo/Logo.jpg" 
-                            alt="StudySphere Logo"
-                            fill
-                            className="object-contain rounded-full"
-                            priority
-                        />
+                        <Image src="/Logo/Logo.jpg" alt="StudySphere Logo" fill className="object-contain rounded-full" priority />
                     </div>
-                    
                     <p className="text-gray-200 text-base font-bold tracking-wide">
                         Acede à tua conta para continuar
                     </p>
@@ -46,11 +45,11 @@ export default function LoginPage() {
 
                 <form onSubmit={handleLogin} className="w-full max-w-sm space-y-4">
                     <InputField
-                        id="email"
-                        label="E-mail"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        id="identifier"
+                        label="E-mail ou Nome de Utilizador"
+                        type="text"
+                        value={identifier}
+                        onChange={(e) => setIdentifier(e.target.value)}
                         required
                     />
 
@@ -72,9 +71,9 @@ export default function LoginPage() {
 
                     <button
                         type="submit"
-                        disabled={isLoading}
+                        disabled={isLoading || !isFormValid}
                         className={`w-full rounded-xl py-3.5 text-base font-bold text-white shadow-lg transition-all mt-2
-                            ${isLoading 
+                            ${isLoading || !isFormValid
                                 ? "bg-gray-600 cursor-not-allowed opacity-70" 
                                 : "bg-gradient-to-r from-[#6EE7B7] to-[#3B82F6] hover:opacity-90 active:scale-[0.98]"
                             }`}
