@@ -5,28 +5,36 @@ import { useRouter } from 'next/navigation';
 
 export default function Loading() {
   const router = useRouter();
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      router.replace('/login');
-    }, 2000);
+      if (isAuthenticated) {
+        router.replace('/dashboard');
+      } else {
+        router.replace('/login');
+      }
+    }, 5000);
     return () => clearTimeout(timer);
-  }, [router]);
+  }, [isAuthenticated, router]);
 
   return (
-    // SEM BACKGROUND AQUI (transparente)
-    <div className="flex min-h-screen flex-col items-center justify-center relative">
+    <div
+      className="flex min-h-screen flex-col items-center justify-center"
+      style={{
+        background: 'linear-gradient(to bottom, #06141F 60%, #1C3B4F 100%)',
+      }}
+    >
       <div className="flex flex-col items-center">
-        <div className="relative h-48 w-48 mb-8">
-          <Image
-            src="/Logo/Logo_sem_fundo.png"
-            alt="StudySphere logo"
-            fill
-            className="object-contain"
-            priority
-          />
-        </div>
-        <div className="w-12 h-12 border-4 border-zinc-700 border-t-[#6EE7B7] rounded-full animate-spin"></div>
+        <Image
+          src="/Logo/Logo_sem_fundo.png"
+          alt="StudySphere logo"
+          width={200}
+          height={200}
+          priority
+          style={{ objectFit: 'contain', marginBottom: '30px' }}
+        />
+        <div className="w-12 h-12 border-4 border-zinc-300 dark:border-zinc-700 border-t-zinc-900 dark:border-t-zinc-50 rounded-full animate-spin"></div>
       </div>
     </div>
   );

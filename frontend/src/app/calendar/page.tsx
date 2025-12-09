@@ -10,7 +10,7 @@ export default function CalendarPage() {
   };
 
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center pb-20" style={{ backgroundColor: '#06141F' }}>
+    <div className="flex min-h-screen flex-col items-center justify-center pb-20" style={{background: 'var(--background)'}}>
       <div className="flex flex-col items-center text-center p-4">
         <h1 className="text-3xl font-bold text-white mb-6">Calendário</h1>
         <p className="text-zinc-400 text-lg mb-3">Esta página está em desenvolvimento.</p>

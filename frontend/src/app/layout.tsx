@@ -31,9 +31,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
       >
         <AuthProvider>
           <TaskProvider>
-            
-            {children} 
-
+            {children}
             <BottomTabs />
           </TaskProvider>
         </AuthProvider>
