@@ -1,4 +1,4 @@
-'use client'; // Necessário porque adicionámos useState
+'use client'; 
 
 import React, { useState } from 'react';
 import { HiEye, HiEyeOff } from "react-icons/hi"; 
