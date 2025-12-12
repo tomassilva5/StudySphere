@@ -1,16 +1,13 @@
-// pages/loading.tsx
 'use client';
 import Image from 'next/image';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/app/providers/AuthContext';
 
 export default function Loading() {
   const router = useRouter();
   const { isAuthenticated } = useAuth();
 
   useEffect(() => {
-    // Redireciona após 2 segundos
     const timer = setTimeout(() => {
       if (isAuthenticated) {
         router.replace('/dashboard');

@@ -36,7 +36,7 @@ export default {
         const usernames = users.map((user: { username: any; }) => user.username)
         return usernames
     },
-    async verifypassword(data:UserDTO){
+    async getUser(data:UserDTO){
         const user = await prisma.utilizador.findUnique({
             where:{
                 username: data.username
