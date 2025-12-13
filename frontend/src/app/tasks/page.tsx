@@ -73,7 +73,7 @@ function AddTaskModal({
   onAdd,
 }: {
   onClose: () => void;
-  onAdd: (task: Omit<Task, 'id' | 'completed' | 'duration'>) => void;
+  onAdd: (task: Omit<Task, 'id' | 'completed' | 'duration' | 'priority' | 'status'>) => void;
 }) {
   const [title, setTitle] = useState('');
   const [type, setType] = useState<TaskType>('Universidade');
@@ -162,7 +162,6 @@ function AddTaskModal({
                     updateEndTime(e.target.value);
                   }}
                   className="w-full p-2 rounded-lg bg-zinc-800 text-white"
-                  style={{ colorScheme: 'light' }}
                 />
               </div>
               <div className="flex-1">
@@ -172,7 +171,6 @@ function AddTaskModal({
                   value={endTime}
                   onChange={(e) => setEndTime(e.target.value)}
                   className="w-full p-2 rounded-lg bg-zinc-800 text-white"
-                  style={{ colorScheme: 'light' }}
                 />
               </div>
             </div>
@@ -212,13 +210,12 @@ function AddTaskModal({
   );
 }
 
-
 // Página Principal
 export default function TasksPage() {
   const { tasks, addTask, toggleTask } = useTasks();
   const [showAddModal, setShowAddModal] = useState(false);
 
-  const handleAddTask = useCallback((taskData: Omit<Task, 'id' | 'completed' | 'duration'>) => {
+  const handleAddTask = useCallback((taskData: Omit<Task, 'id' | 'completed' | 'duration' | 'priority' | 'status'>) => {
     const start = new Date(`1970-01-01T${taskData.startTime}:00`);
     const end = new Date(`1970-01-01T${taskData.endTime}:00`);
     let duration = (end.getTime() - start.getTime()) / 3600000;
@@ -226,9 +223,16 @@ export default function TasksPage() {
 
     const newTask: Task = {
       id: Date.now().toString(),
-      completed: false,
+      title: taskData.title,
+      type: taskData.type,
+      date: taskData.date,
+      startTime: taskData.startTime,
+      endTime: taskData.endTime,
+      repeat: taskData.repeat,
       duration,
-      ...taskData,
+      completed: false,
+      priority: 'MEDIUM',
+      status: 'scheduled',
     };
     addTask(newTask);
   }, [addTask]);
@@ -241,7 +245,11 @@ export default function TasksPage() {
 
   // Ordenar tarefas por horário
   Object.keys(groupedTasks).forEach(type => {
-    groupedTasks[type as TaskType].sort((a, b) => a.startTime.localeCompare(b.startTime));
+    groupedTasks[type as TaskType].sort((a, b) => {
+      const timeA = a.startTime.replace(':', '');
+      const timeB = b.startTime.replace(':', '');
+      return timeA.localeCompare(timeB);
+    });
   });
 
   return (

@@ -25,18 +25,14 @@ export default function LoginPage() {
         e.preventDefault();
         setHasSubmitted(true);
         setError('');
-        
         if (!isFormValid) return;
-
         setIsLoading(true);
-
-        try {
-            await new Promise(resolve => setTimeout(resolve, 1500));
-            login("token-exemplo");
+        const result = await login(identifier, password);
+        setIsLoading(false);
+        if (result.success) {
             router.push('/dashboard');
-        } catch (err) {
-            setError('Erro ao iniciar sessão.');
-            setIsLoading(false);
+        } else {
+            setError(result.error || 'Erro ao iniciar sessão.');
         }
     };
 
