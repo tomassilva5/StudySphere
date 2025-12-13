@@ -2,21 +2,26 @@
 import Image from 'next/image';
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/app/providers/AuthContext';
 
 export default function Loading() {
   const router = useRouter();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
+    // Esperar que o contexto termine de carregar
+    if (isLoading) return;
+
     const timer = setTimeout(() => {
       if (isAuthenticated) {
         router.replace('/dashboard');
       } else {
         router.replace('/login');
       }
-    }, 5000);
+    }, 2000); // Reduzido para 2 segundos
+
     return () => clearTimeout(timer);
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, isLoading, router]);
 
   return (
     <div
@@ -34,7 +39,10 @@ export default function Loading() {
           priority
           style={{ objectFit: 'contain', marginBottom: '30px' }}
         />
-        <div className="w-12 h-12 border-4 border-zinc-300 dark:border-zinc-700 border-t-zinc-900 dark:border-t-zinc-50 rounded-full animate-spin"></div>
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-zinc-300 dark:border-zinc-700 border-t-[#57F177] rounded-full animate-spin"></div>
+          <p className="text-zinc-400 text-sm">A carregar...</p>
+        </div>
       </div>
     </div>
   );
