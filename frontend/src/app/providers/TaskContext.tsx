@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState, ReactNode } from 'react
 export type TaskType = 'Universidade' | 'Estudo Individual' | 'Estudo de Grupo' | 'Eventos Pessoais' | 'Lazer';
 export type TaskStatus = 'scheduled' | 'ongoing' | 'finished' | 'cancelled';
 export type TaskPriority = 'LOW' | 'MEDIUM' | 'HIGH';
+export type RepeatType = 'Nunca' | 'Todos os dias' | 'Todas as semanas' | 'Todos os meses';
 
 export type Task = {
   id: string;
@@ -13,7 +14,7 @@ export type Task = {
   startTime: string;
   endTime: string;
   date: string;
-  repeat?: any; 
+  repeat?: RepeatType;
   duration: number;
   completed: boolean;
   priority: TaskPriority;
@@ -35,6 +36,29 @@ const calculateDuration = (startTime: string, endTime: string): number => {
   const endDate = new Date(`1970-01-01T${endTime}:00`);
   const diffInMs = endDate.getTime() - startDate.getTime();
   return Math.abs(diffInMs / (1000 * 60 * 60)); // Convert milliseconds to hours
+};
+
+// Mapping functions for database enum conversion
+const dbToFrontendCategory = (dbCategory: string): TaskType => {
+  const mapping: Record<string, TaskType> = {
+    'Universidade': 'Universidade',
+    'Estudo_Individual': 'Estudo Individual',
+    'Estudo_Grupo': 'Estudo de Grupo',
+    'Eventos_Pessoais': 'Eventos Pessoais',
+    'Lazer': 'Lazer'
+  };
+  return mapping[dbCategory] || 'Universidade';
+};
+
+const frontendToDbCategory = (frontendCategory: TaskType): string => {
+  const mapping: Record<TaskType, string> = {
+    'Universidade': 'Universidade',
+    'Estudo Individual': 'Estudo_Individual',
+    'Estudo de Grupo': 'Estudo_Grupo',
+    'Eventos Pessoais': 'Eventos_Pessoais',
+    'Lazer': 'Lazer'
+  };
+  return mapping[frontendCategory] || 'Universidade';
 };
 
 const TaskContext = createContext<TaskContextType | undefined>(undefined);
@@ -69,7 +93,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
             id: evento.id,
             title: evento.title,
             description: evento.description,
-            type: evento.category,
+            type: dbToFrontendCategory(evento.category),
             startTime: new Date(evento.startDate).toTimeString().slice(0, 5),
             endTime: new Date(evento.endDate).toTimeString().slice(0, 5),
             date: new Date(evento.startDate).toISOString().split('T')[0],

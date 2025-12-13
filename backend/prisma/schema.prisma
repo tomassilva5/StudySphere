@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -25,6 +22,7 @@ model Utilizador {
   grupos  GrupoUtilizador[]
   history History[]
 }
+
 model Evento {
   id String @id @default(auto()) @map("_id") @db.ObjectId
   title String
@@ -44,6 +42,7 @@ model Evento {
   eventos EventoGrupo[]
   createdAt DateTime? @default(now())
 }
+
 model Grupo {
   id String @id @default(auto()) @map("_id") @db.ObjectId
   name String
@@ -52,15 +51,17 @@ model Grupo {
   createdAt DateTime? @default(now())
   eventos EventoGrupo[]
 }
+
 model EventoGrupo {
   id String @id @default(auto()) @map("_id") @db.ObjectId
   evento Evento @relation(fields: [eventoId], references: [id])
-  eventoId String @db.ObjectId 
+  eventoId String @db.ObjectId
   grupo Grupo @relation(fields: [grupoId], references: [id])
   grupoId String @db.ObjectId
   createdAt DateTime @default(now())
   @@unique([eventoId, grupoId])
 }
+
 model GrupoUtilizador {
   id           String     @id @default(auto()) @map("_id") @db.ObjectId
   grupo        Grupo      @relation(fields: [grupoId], references: [id])
@@ -70,14 +71,16 @@ model GrupoUtilizador {
   createdAt DateTime @default(now())
   @@unique([grupoId, utilizadorId])
 }
+
 model Chat {
   id        String     @id @default(auto()) @map("_id") @db.ObjectId
-  name      String?    
-  members   String[]   @db.ObjectId          
-  type      chatType     @default(direct) 
-  messages  Message[]  
+  name      String?
+  members   String[]   @db.ObjectId
+  type      chatType     @default(direct)
+  messages  Message[]
   createdAt DateTime   @default(now())
 }
+
 model Message {
   id        String   @id @default(auto()) @map("_id") @db.ObjectId
   chatId    String   @db.ObjectId
@@ -88,6 +91,7 @@ model Message {
   readBy    String[] @db.ObjectId
   filePath  String?
 }
+
 model History {
   id String @id @default(auto()) @map("_id") @db.ObjectId
   user Utilizador @relation(fields: [userId], references: [id])
@@ -95,23 +99,27 @@ model History {
   action String
   createdAt DateTime
 }
+
 enum chatType {
   direct
   group
 }
-enum TaskType {
+
+enum category {
   Universidade
-  Estudo Individual
-  Estudo de Grupo
-  Eventos Pessoais
+  Estudo_Individual
+  Estudo_Grupo
+  Eventos_Pessoais
   Lazer
 }
+
 enum status {
   scheduled
   ongoing
   finished
   cancelled
 }
+
 enum priority {
   LOW
   MEDIUM

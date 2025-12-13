@@ -6,62 +6,54 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import InputField from '../components/InputField';
 import { HiCheck, HiX } from "react-icons/hi";
+import { useAuth } from '@/app/providers/AuthContext';
 
 export default function RegisterPage() {
     const router = useRouter();
-    
+    const { register } = useAuth();
     const [name, setName] = useState('');
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
-    
+    const [error, setError] = useState('');
     // Validação Username
     const usernameRegex = /^[a-zA-Z0-9._]+$/;
     const isUsernameValid = username === '' || usernameRegex.test(username);
     const showUsernameError = username !== '' && !isUsernameValid;
-
     // Validação Password
     const [hasNumber, setHasNumber] = useState(false);
     const [hasCase, setHasCase] = useState(false);
     const [hasLength, setHasLength] = useState(false);
-
     // Validação Email
     const [isEmailValid, setIsEmailValid] = useState(false);
-
     useEffect(() => {
-        // Password
         setHasNumber(/\d/.test(password));
         setHasCase(/[a-z]/.test(password) && /[A-Z]/.test(password));
         setHasLength(password.length >= 8);
-
-        // Email
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         setIsEmailValid(emailRegex.test(email));
     }, [password, email]);
-
     const isPasswordValid = hasNumber && hasCase && hasLength;
     const showEmailError = email.length > 0 && !isEmailValid;
-
     const isFormValid =
         name.trim() !== '' &&
         username.trim() !== '' &&
         isUsernameValid &&
         isEmailValid &&
         isPasswordValid;
-
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
-
+        setError('');
         if (!isFormValid) return;
-
         setIsLoading(true);
-        console.log('Registering:', { name, username, email });
-
-        setTimeout(() => {
-            setIsLoading(false);
+        const result = await register({ name, username, email, password });
+        setIsLoading(false);
+        if (result.success) {
             router.push('/login');
-        }, 1500);
+        } else {
+            setError(result.error || 'Erro ao registar.');
+        }
     };
 
     const ValidationItem = ({ isValid, text }: { isValid: boolean, text: string }) => (
@@ -173,6 +165,11 @@ export default function RegisterPage() {
                 >
                     {isLoading ? "A criar conta..." : "Registar"}
                 </button>
+                {error && (
+                    <div className="p-3 rounded-lg bg-red-900/30 border border-red-500 text-red-200 text-sm text-center mt-2">
+                        {error}
+                    </div>
+                )}
 
                 <Link href="/login" className="w-full max-w-sm">
                     <button 

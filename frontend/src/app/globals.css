@@ -18,3 +18,4 @@ input[type="time"]::-webkit-calendar-picker-indicator {
   filter: invert(1);
   -webkit-filter: invert(1);
 }
+
