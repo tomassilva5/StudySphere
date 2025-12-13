@@ -99,10 +99,12 @@ enum chatType {
   direct
   group
 }
-enum category {
-  academic
-  work
-  personal
+enum TaskType {
+  Universidade
+  Estudo Individual
+  Estudo de Grupo
+  Eventos Pessoais
+  Lazer
 }
 enum status {
   scheduled
