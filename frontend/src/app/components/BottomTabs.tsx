@@ -22,7 +22,7 @@ export default function BottomTabs() {
 
   return (
     <nav
-      className="fixed bottom-6 left-2.5 right-2.5 h-16"
+      className="fixed bottom-6 left-2.5 right-2.5 h-16 z-10"
       style={{
         background: 'linear-gradient(to bottom, #06141F 30%, #1C3B4F 100%)',
         borderRadius: '62px',

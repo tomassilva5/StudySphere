@@ -91,7 +91,7 @@ export default function LoginPage() {
                         className={`w-full rounded-xl py-3.5 text-base font-bold text-white shadow-lg transition-all
                             ${isLoading || !isFormValid
                                 ? "bg-gray-600 cursor-not-allowed opacity-70" 
-                                : "bg-gradient-to-r from-[#6EE7B7] to-[#3B82F6] hover:opacity-90 active:scale-[0.98]"}
+                                : "bg-gradient-to-r from-[#57F177] to-[#4CB2D8] hover:opacity-90 active:scale-[0.98]"}
                         `}
                     >
                         {isLoading ? "A entrar..." : "Entrar"}
