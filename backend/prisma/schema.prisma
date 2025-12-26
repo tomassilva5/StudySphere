@@ -11,101 +11,131 @@ datasource db {
 }
 
 model Utilizador {
-  id      String   @id @default(auto()) @map("_id") @db.ObjectId
-  username String @unique
-  email   String   @unique
-  fullname    String?
-  password String
-  createdAt DateTime @default(now())
-  externalCalendarId String?
-  eventos Evento[]
-  grupos  GrupoUtilizador[]
-  history History[]
+  id                    String            @id @default(auto()) @map("_id") @db.ObjectId
+  nome_utilizador       String            @unique
+  email                 String            @unique
+  nome_completo         String?
+  palavra_passe         String
+  criado_em             DateTime          @default(now())
+  id_calendario_externo String?
+  google_access_token   String?
+  google_refresh_token  String?
+  eventos               Evento[]
+  grupos                GrupoUtilizador[]
+  historico             Historico[]
+  refresh_tokens        RefreshToken[]
+}
+
+model RefreshToken {
+  id            String   @id @default(auto()) @map("_id") @db.ObjectId
+  token_hash    String   @unique
+  expira_em     DateTime
+  utilizador    Utilizador @relation(fields: [utilizador_id], references: [id])
+  utilizador_id String   @db.ObjectId
+  criado_em     DateTime @default(now())
+
+  @@index([utilizador_id])
 }
 
 model Evento {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  title String
-  description String?
-  startDate DateTime
-  endDate DateTime
-  isVirtual Boolean
-  meetingLink String?
-  priority priority
-  status status @default(scheduled)
-  owner Utilizador @relation(fields: [userId], references: [id])
-  userId String @db.ObjectId
-  category category
-  tags String?
-  recurrence Json?
-  externalSync Json?
-  eventos EventoGrupo[]
-  createdAt DateTime? @default(now())
+  id                   String        @id @default(auto()) @map("_id") @db.ObjectId
+  titulo               String
+  descricao            String?
+  data_inicio          DateTime
+  data_fim             DateTime
+  e_virtual            Boolean
+  link_reuniao         String?
+  prioridade           prioridade
+  estado               estado_evento @default(agendado)
+  proprietario         Utilizador    @relation(fields: [utilizador_id], references: [id])
+  utilizador_id        String        @db.ObjectId
+  categoria            categoria
+  etiquetas            String?
+  recorrencia          Json?
+  sincronizacao_externa Json?
+  grupos_evento        EventoGrupo[]
+  criado_em            DateTime?     @default(now())
+
+  @@index([utilizador_id, data_inicio, data_fim])
+  @@index([utilizador_id, estado])
+  @@index([utilizador_id, prioridade])
+  @@index([utilizador_id, categoria])
 }
 
 model Grupo {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  name String
-  description String?
-  members  GrupoUtilizador[]
-  createdAt DateTime? @default(now())
-  eventos EventoGrupo[]
+  id            String            @id @default(auto()) @map("_id") @db.ObjectId
+  nome          String
+  descricao     String?
+  membros       GrupoUtilizador[]
+  criado_em     DateTime?         @default(now())
+  eventos_grupo EventoGrupo[]
+
+  @@index([nome])
 }
 
 model EventoGrupo {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  evento Evento @relation(fields: [eventoId], references: [id])
-  eventoId String @db.ObjectId
-  grupo Grupo @relation(fields: [grupoId], references: [id])
-  grupoId String @db.ObjectId
-  createdAt DateTime @default(now())
-  @@unique([eventoId, grupoId])
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  evento     Evento   @relation(fields: [evento_id], references: [id])
+  evento_id  String   @db.ObjectId
+  grupo      Grupo    @relation(fields: [grupo_id], references: [id])
+  grupo_id   String   @db.ObjectId
+  criado_em  DateTime @default(now())
+
+  @@unique([evento_id, grupo_id])
 }
 
 model GrupoUtilizador {
-  id           String     @id @default(auto()) @map("_id") @db.ObjectId
-  grupo        Grupo      @relation(fields: [grupoId], references: [id])
-  grupoId      String     @db.ObjectId
-  utilizador   Utilizador @relation(fields: [utilizadorId], references: [id])
-  utilizadorId String     @db.ObjectId
-  createdAt DateTime @default(now())
-  @@unique([grupoId, utilizadorId])
+  id            String     @id @default(auto()) @map("_id") @db.ObjectId
+  grupo         Grupo      @relation(fields: [grupo_id], references: [id])
+  grupo_id      String     @db.ObjectId
+  utilizador    Utilizador @relation(fields: [utilizador_id], references: [id])
+  utilizador_id String     @db.ObjectId
+  criado_em     DateTime   @default(now())
+
+  @@unique([grupo_id, utilizador_id])
 }
 
-model Chat {
-  id        String     @id @default(auto()) @map("_id") @db.ObjectId
-  name      String?
-  members   String[]   @db.ObjectId
-  type      chatType     @default(direct)
-  messages  Message[]
-  createdAt DateTime   @default(now())
+model Conversa {
+  id        String          @id @default(auto()) @map("_id") @db.ObjectId
+  nome      String?
+  membros   String[]        @db.ObjectId
+  tipo      tipo_conversa   @default(direta)
+  mensagens Mensagem[]
+  criado_em DateTime        @default(now())
+
+  @@index([membros])
 }
 
-model Message {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  chatId    String   @db.ObjectId
-  chat      Chat     @relation(fields: [chatId], references: [id])
-  senderId  String   @db.ObjectId
-  content   String?
-  timestamp DateTime? @default(now())
-  readBy    String[] @db.ObjectId
-  filePath  String?
+model Mensagem {
+  id               String    @id @default(auto()) @map("_id") @db.ObjectId
+  conversa_id      String    @db.ObjectId
+  conversa         Conversa  @relation(fields: [conversa_id], references: [id])
+  remetente_id     String    @db.ObjectId
+  conteudo         String?
+  data_envio       DateTime? @default(now())
+  lido_por         String[]  @db.ObjectId
+  caminho_ficheiro String?
+
+  @@index([conversa_id, data_envio])
+  @@index([lido_por])
 }
 
-model History {
-  id String @id @default(auto()) @map("_id") @db.ObjectId
-  user Utilizador @relation(fields: [userId], references: [id])
-  userId String @db.ObjectId
-  action String
-  createdAt DateTime
+model Historico {
+  id            String     @id @default(auto()) @map("_id") @db.ObjectId
+  utilizador    Utilizador @relation(fields: [utilizador_id], references: [id])
+  utilizador_id String     @db.ObjectId
+  acao          String
+  criado_em     DateTime
+
+  @@index([utilizador_id])
 }
 
-enum chatType {
-  direct
-  group
+enum tipo_conversa {
+  direta
+  grupo
 }
 
-enum category {
+enum categoria {
   Universidade
   Estudo_Individual
   Estudo_Grupo
@@ -113,15 +143,15 @@ enum category {
   Lazer
 }
 
-enum status {
-  scheduled
-  ongoing
-  finished
-  cancelled
+enum estado_evento {
+  agendado
+  em_andamento
+  concluido
+  cancelado
 }
 
-enum priority {
-  LOW
-  MEDIUM
-  HIGH
+enum prioridade {
+  BAIXA
+  MEDIA
+  ALTA
 }

@@ -1,11 +1,11 @@
 import eventsDb from "../db/events.db"
-import Evento, { EventoUpdate } from "../types/events.dto"
+import { EventCreateDTO, EventoUpdate } from "../types/events.dto"
 
 export default{
-    createEvent(dto:Evento){
+    createEvent(dto:EventCreateDTO){
         return eventsDb.createEvent(dto)
     },
-    createGroupEvent(dto:Evento){
+    createGroupEvent(dto:EventCreateDTO){
         return eventsDb.createGroupEvent(dto)
     },
     getTodayEvents(userId:string){

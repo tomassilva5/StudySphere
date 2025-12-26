@@ -1,22 +1,31 @@
 import userDb from "../db/user.db";
-import UserDTO from "../types/user.dto";
+import { UserCreateDTO, UserLogin } from "../types/user.dto";
 export default {
     getAll(){
         return userDb.findAll()
     },
-    create(data:UserDTO){
+    create(data:UserCreateDTO){
         return userDb.create_user(data)
     },
-    loginUser(data:UserDTO){
+    loginUser(data:UserLogin){
         return userDb.verifypassword(data)
     },
     getUsernames(){
         return userDb.getNames()
     },
-    getSpecificUsernames(username:string){
-        return  userDb.getVariousUsernames(username)
+    getSpecificUsernames(nome_utilizador:string){
+        return  userDb.searchUsernames(nome_utilizador)
     },
-    userExists(username:string){
-        return userDb.isUsernameIn(username)
+    userExists(nome_utilizador:string){
+        return userDb.isUsernameIn(nome_utilizador)
     },
+    idByEmail(email:string){
+        return userDb.idByEmail(email)
+    },
+    idByUsername(nome_utilizador:string){
+        return userDb.idByUsername(nome_utilizador)
+    },
+    getById(id:string){
+        return userDb.getById(id)
+    }
 }

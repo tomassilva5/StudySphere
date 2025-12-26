@@ -1,25 +1,29 @@
 import {prisma} from "../lib/prisma";
-import Grupo from "../types/grupo.dto";
-import GrupoAddusers from "../types/grupo.dto";
+import { GrupoCreateDTO, GrupoAddUsersDTO } from "../types/grupo.dto";
 
 export default{
-    async createGrupo(dto:Grupo){
+    async createGrupo(dto:GrupoCreateDTO){
         return prisma.grupo.create({
             data:{
-                name: dto.name,
-                description: dto.description,
-                members:{
-                    create: dto.membersUsername.map((username) => ({
+                nome: dto.nome,
+                descricao: dto.descricao,
+                membros:{
+                    create: dto.membrosNomeUtilizador.map((nome_utilizador) => ({
                         utilizador: {
-                            connect: { username },
+                            connect: { nome_utilizador },
                         },
                     }))
                 }
             },
             include:{
-                members: {
-                    include: {
-                        utilizador: true,
+                membros: {
+                    select: {
+                        utilizador: {
+                            select: {
+                                id: true,
+                                nome_utilizador: true,
+                            },
+                        },
                     },
                 }
             }
@@ -28,30 +32,35 @@ export default{
     async leaveGrupo(userId:string, groupId:string){
         return prisma.grupoUtilizador.delete({
             where: {
-                grupoId_utilizadorId: {
-                    grupoId: groupId,
-                    utilizadorId: userId,
+                grupo_id_utilizador_id: {
+                    grupo_id: groupId,
+                    utilizador_id: userId,
                 },
             },
             
         })
     },
-    async addMembers(dto:GrupoAddusers){
+    async addMembers(dto:GrupoAddUsersDTO){
         return prisma.grupo.update({
             where: {id: dto.grupoId},
             data:{
-                members:{
-                    create: dto.membersUsername.map((username) => ({
+                membros:{
+                    create: dto.membrosNomeUtilizador.map((nome_utilizador) => ({
                         utilizador: { 
-                            connect: { username } 
+                            connect: { nome_utilizador } 
                         },
                     })),
                 },
             },
             include:{
-                members: {
-                    include: {
-                        utilizador: true,
+                membros: {
+                    select: {
+                        utilizador: {
+                            select: {
+                                id: true,
+                                nome_utilizador: true,
+                            },
+                        },
                     },
                 }
             }

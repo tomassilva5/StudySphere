@@ -1,10 +1,12 @@
-export default interface CreateUserDTO {
-    username:string;
-    fullname:string;
+export interface UserCreateDTO {
+    nome_utilizador:string;
+    nome_completo:string;
     email:string;
-    password:string;
+    palavra_passe:string;
 }
-export default interface UserDTO{
-    username:string;
-    password:string;
+
+export interface UserLogin {
+    nome_utilizador?:string;
+    palavra_passe:string;
+    email?:string;
 }
