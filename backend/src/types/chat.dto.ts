@@ -1,12 +1,14 @@
-export default interface Chat{
-    name:string;
-    membersId:string[];
-    type:'group';
+import { tipo_conversa } from "@prisma/client";
+
+export interface Conversa{
+    nome:string;
+    membros:string[];
+    tipo: tipo_conversa;
 }
 
-export default interface Message{
-    userid:string
-    content:string
-    chatid:string
-    file:string
+export interface Mensagem{
+    remetente_id:string
+    conteudo:string
+    conversa_id:string
+    caminho_ficheiro:string
 }

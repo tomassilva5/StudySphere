@@ -1,9 +1,9 @@
-export default interface Grupo{
-    name:string
-    description:string
-    membersUsername:string[]
+export interface GrupoCreateDTO {
+    nome:string
+    descricao:string
+    membrosNomeUtilizador:string[]
 }
-export default interface GrupoAddusers{
+export interface GrupoAddUsersDTO {
     grupoId:string
-    membersUsername:string[]
+    membrosNomeUtilizador:string[]
 }

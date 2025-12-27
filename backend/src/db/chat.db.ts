@@ -1,51 +1,57 @@
 import {prisma} from "../lib/prisma";
-import Chat from "../types/chat.dto";
-import Message from "../types/chat.dto";
+import { Conversa, Mensagem } from "../types/chat.dto";
 
 export default {
-    createChat(data:Chat){
-       return prisma.chat.create({data})
+    createChat(data:Conversa){
+       return prisma.conversa.create({
+           data: {
+               nome: data.nome,
+               membros: data.membros,
+               tipo: data.tipo,
+           }
+       })
     },
     getChats(userId:string){
-        return prisma.chat.findMany({
+        return prisma.conversa.findMany({
             where: {
-                members: {
+                membros: {
                     has: userId
                 }
             }
         })
     },
     getMessages(chatId:string){
-        return prisma.message.findMany({
+        return prisma.mensagem.findMany({
             where:{
-                chatId
+                conversa_id: chatId
             },
             orderBy:{
-                timestamp:'desc'
+                data_envio:'desc'
             },
         })
     },
-    sendMessage(message:Message){
-        return prisma.message.create({
+    sendMessage(message:Mensagem){
+        return prisma.mensagem.create({
             data:{
-                senderId: message.userid,
-                content: message.content,
-                chatId: message.chatid,
+                remetente_id: message.remetente_id,
+                conteudo: message.conteudo,
+                conversa_id: message.conversa_id,
+                caminho_ficheiro: message.caminho_ficheiro,
             }
         })
     },
     markAsRead(messageId:string, userId:string){
-        return prisma.message.updateMany({ 
+        return prisma.mensagem.updateMany({ 
             where: { 
                 id:messageId,
                 NOT:{
-                    readBy:{
+                    lido_por:{
                         has:userId
                     }
                 }
             },
             data:{
-                readBy:{
+                lido_por:{
                     push:userId
                 }
             }

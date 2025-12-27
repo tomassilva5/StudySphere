@@ -1,11 +1,13 @@
 'use client';
 
 import { useAuth } from '@/app/providers/AuthContext';
+import { useRouter } from 'next/navigation';
 import { HiUser, HiBell, HiGlobeAlt, HiChevronRight, HiCalendar, HiCog, HiArrowRightOnRectangle } from "react-icons/hi2";
 import Image from 'next/image';
 
 export default function Settings() {
   const { logout, user } = useAuth(); // Assumindo que o user tem { name, email }
+  const router = useRouter();
 
   // Componente Auxiliar para os Itens da Lista
   const SettingItem = ({ icon: Icon, label, onClick, color = "text-white" }: any) => (
@@ -70,7 +72,10 @@ export default function Settings() {
 
       {/* 4. BOTÃO TERMINAR SESSÃO */}
       <button
-        onClick={logout}
+        onClick={() => {
+          logout();
+          router.push('/login');
+        }}
         className="w-full bg-red-500/10 border border-red-500/50 hover:bg-red-500/20 active:scale-[0.98] transition-all rounded-xl p-4 flex items-center justify-center gap-2 group"
       >
         <HiArrowRightOnRectangle className="text-red-500 group-hover:text-red-400" size={20} />

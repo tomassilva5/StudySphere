@@ -9,7 +9,6 @@ export default function Loading() {
   const { isAuthenticated, isLoading } = useAuth();
 
   useEffect(() => {
-    // Esperar que o contexto termine de carregar
     if (isLoading) return;
 
     const timer = setTimeout(() => {
@@ -18,7 +17,7 @@ export default function Loading() {
       } else {
         router.replace('/login');
       }
-    }, 2000); // Reduzido para 2 segundos
+    }, 2000);
 
     return () => clearTimeout(timer);
   }, [isAuthenticated, isLoading, router]);
@@ -40,7 +39,7 @@ export default function Loading() {
           style={{ objectFit: 'contain', marginBottom: '30px' }}
         />
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-zinc-300 dark:border-zinc-700 border-t-[#57F177] rounded-full animate-spin"></div>
+          <div className="w-12 h-12 border-4 border-zinc-300 border-t-[#57F177] dark:border-zinc-700 rounded-full animate-spin"></div>
           <p className="text-zinc-400 text-sm">A carregar...</p>
         </div>
       </div>
