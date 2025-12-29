@@ -104,7 +104,7 @@ function AddTaskForm({
   };
 
   const handleAdd = () => {
-    onAdd({ title, type, date, startTime, endTime, repeat, priority: 'MEDIUM', status: 'scheduled' });
+    onAdd({ title, type, date, startTime, endTime, repeat });
     setTitle('');
     onClose();
   };

@@ -9,7 +9,7 @@ export default function BottomTabs() {
   const pathname = usePathname();
   const { isAuthenticated } = useAuth();
 
-  if (!isAuthenticated || pathname === '/login' || pathname === '/register' || pathname === '/loading' || pathname === '/calendar') {
+  if (!isAuthenticated || pathname === '/login' || pathname === '/register' || pathname === '/loading' || pathname === '/calendar' || pathname === '/intro') {
     return null;
   }
 
@@ -22,7 +22,7 @@ export default function BottomTabs() {
 
   return (
     <nav
-      className="fixed bottom-6 left-2.5 right-2.5 h-16 z-10"
+      className="fixed bottom-6 left-2.5 right-2.5 h-16 z-40"
       style={{
         background: 'linear-gradient(to bottom, #06141F 30%, #1C3B4F 100%)',
         borderRadius: '62px',
@@ -39,7 +39,7 @@ export default function BottomTabs() {
               href={tab.href}
               className="flex flex-col items-center justify-center h-full flex-1"
             >
-              <Icon className={`text-3xl ${isActive ? 'text-white' : 'text-gray-400'}`} />
+              <Icon className={`text-3xl transition-colors ${isActive ? 'text-[#57F177]' : 'text-gray-400'}`} />
             </Link>
           );
         })}
