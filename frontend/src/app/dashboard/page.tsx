@@ -1,8 +1,9 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { FiChevronRight, FiPlusCircle, FiCalendar } from 'react-icons/fi';
+import { FiChevronRight, FiCalendar } from 'react-icons/fi';
 import { useRouter } from 'next/navigation';
 import { useTasks } from '@/app/providers/TaskContext';
+import HeaderDate from '@/app/components/HeaderDate'; 
 
 type TimeDistributionProps = {
   category: string;
@@ -12,25 +13,13 @@ type TimeDistributionProps = {
 };
 
 export default function Dashboard() {
-  const [currentDate, setCurrentDate] = useState<Date>(new Date());
+  const [calendarDate] = useState<Date>(new Date());
   const router = useRouter();
   const { tasks } = useTasks();
-  const [timeDistribution, setTimeDistribution] =useState<TimeDistributionProps[]>([
-    { category: 'Uni', time: '0h', color: 'bg-green-500', width: '0%' },
-    { category: 'Estudo Pessoal', time: '0h', color: 'bg-cyan-500', width: '0%' },
-    { category: 'Grupos', time: '0h', color: 'bg-purple-500', width: '0%' },
-    { category: 'Eventos Pessoais', time: '0h', color: 'bg-red-500', width: '0%' },
-    { category: 'Lazer', time: '0h', color: 'bg-yellow-500', width: '0%' },
-  ]);
+  const [timeDistribution, setTimeDistribution] = useState<TimeDistributionProps[]>([]);
 
-  const daysOfWeek = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sab'];
-
-  const monthNames = [
-    'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-    'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-  ];
-
-  const calculateTimeDistribution = () => {
+  // Lógica de cálculo
+  useEffect(() => {
     const categories = [
       { name: 'Aulas', type: 'Universidade', color: 'bg-green-500' },
       { name: 'Estudo Pessoal', type: 'Estudo Individual', color: 'bg-cyan-500' },
@@ -40,9 +29,7 @@ export default function Dashboard() {
     ];
 
     const categoryTimes: Record<string, number> = {};
-    categories.forEach(category => {
-      categoryTimes[category.type] = 0;
-    });
+    categories.forEach(c => categoryTimes[c.type] = 0);
 
     tasks.forEach(task => {
       if (categoryTimes[task.type] !== undefined) {
@@ -51,47 +38,31 @@ export default function Dashboard() {
     });
 
     const totalTime = Object.values(categoryTimes).reduce((sum, time) => sum + time, 0);
-    const maxTime = Math.min(totalTime, 24);
-
-    const distribution = categories.map(category => {
-      const time = categoryTimes[category.type];
-      const percentage = totalTime > 0 ? (time / maxTime) * 100 : 0;
-      return {
-        category: category.name,
-        time: `${time}h`,
-        color: category.color,
-        width: `${percentage}%`,
-      };
-    });
-
-    setTimeDistribution(distribution);
-  };
-
-  useEffect(() => {
-    calculateTimeDistribution();
+    
+    setTimeDistribution(categories.map(c => ({
+      category: c.name,
+      time: `${categoryTimes[c.type]}h`,
+      color: c.color,
+      width: `${totalTime > 0 ? (categoryTimes[c.type] / Math.max(totalTime, 24)) * 100 : 0}%`,
+    })));
   }, [tasks]);
 
   const renderDays = () => {
-    const year = currentDate.getFullYear();
-    const month = currentDate.getMonth();
+    const year = calendarDate.getFullYear();
+    const month = calendarDate.getMonth();
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-    const firstDayOfMonth = new Date(year, month, 1).getDay();
+    const firstDay = new Date(year, month, 1).getDay();
     const days = [];
 
-    for (let i = 0; i < firstDayOfMonth; i++) {
-      days.push(<div key={`empty-${i}`} className="p-2"></div>);
-    }
-
+    for (let i = 0; i < firstDay; i++) days.push(<div key={`e-${i}`} />);
     for (let i = 1; i <= daysInMonth; i++) {
-      const dayDate = new Date(year, month, i);
-      const isToday = dayDate.toDateString() === new Date().toDateString();
+      const isToday = i === new Date().getDate() && month === new Date().getMonth();
       days.push(
-        <div
-          key={`day-${i}`}
-          className={`p-2 text-center rounded-lg text-sm ${
-            isToday ? 'bg-gradient-to-br from-[#57F177] to-[#4CB2D8] text-white' : 'text-gray-300'
-          }`}
-        >
+        <div key={i} className={`p-2 text-center rounded-lg text-sm transition-all ${
+          isToday 
+            ? 'bg-gradient-to-br from-[#57F177] to-[#4CB2D8] text-[#06141F] font-bold shadow-lg shadow-[#57F177]/20' 
+            : 'text-gray-300 hover:bg-white/5'
+        }`}>
           {i}
         </div>
       );
@@ -99,74 +70,61 @@ export default function Dashboard() {
     return days;
   };
 
-  const handleViewFullCalendar = () => {
-    router.push('/calendar'); 
-  };
-
-  const handleViewMoreTasks = () => {
-    router.push('/tasks');
-  };
-
   return (
-    <div className="flex min-h-screen flex-col pb-20" style={{background: 'var(--background)'}}>
-      {/* Cabeçalho */}
-      <div className="p-4">
-        <div className="text-teal-400 font-medium">
-          {currentDate.toLocaleDateString('pt-PT', { weekday: 'long', day: 'numeric', month: 'long' })}
-        </div>
-      </div>
+    <div className="flex min-h-screen flex-col pb-24" style={{background: 'var(--background)'}}>
+      
+      {/* 1. Componente Global de Data (Com o novo Fade) */}
+      <HeaderDate />
 
-      {/* Calendário */}
-      <div className="bg-[#1C3B4F] rounded-xl mx-4 p-4 mb-4">
-        <div className="flex justify-between items-center mb-2">
-          <div className="flex items-center gap-2">
-            <div className="bg-gradient-to-br from-[#57F177] to-[#4CB2D8] p-2 rounded-lg">
-              <FiCalendar className="text-white" />
+      <div className="px-4 space-y-6">
+        
+        {/* Bloco Calendário */}
+        <div className="bg-[#1C3B4F]/50 backdrop-blur-md rounded-2xl p-5 border border-white/5 shadow-xl">
+          <div className="flex justify-between items-center mb-6">
+            <div className="flex items-center gap-3">
+              {/* Ícone atualizado com a nova cor */}
+              <div className="bg-[#57F177]/20 p-2 rounded-xl">
+                <FiCalendar className="text-[#57F177] text-lg" />
+              </div>
+              <h2 className="text-xl font-bold text-white tracking-tight">Calendário</h2>
             </div>
-            <h2 className="text-xl font-bold text-white">Calendário</h2>
+            <button onClick={() => router.push('/calendar')} className="text-white/70 hover:text-white transition-colors">
+              <FiChevronRight size={24} />
+            </button>
           </div>
-          <button onClick={handleViewFullCalendar} className="p-1">
-            <FiChevronRight className="text-white text-xl" />
-          </button>
+
+          <p className="text-center text-white font-medium mb-4 opacity-80">
+            {new Intl.DateTimeFormat('pt-PT', { month: 'long', year: 'numeric' }).format(calendarDate)}
+          </p>
+
+          <div className="grid grid-cols-7 gap-1 text-zinc-500 text-xs font-bold mb-2 uppercase text-center">
+            {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map(d => <div key={d}>{d}</div>)}
+          </div>
+          <div className="grid grid-cols-7 gap-1">{renderDays()}</div>
         </div>
 
-        <div className="text-center text-white font-medium mb-3">
-          {monthNames[currentDate.getMonth()]} de {currentDate.getFullYear()}
-        </div>
-
-        {/* Dias da Semana */}
-        <div className="grid grid-cols-7 gap-1 mb-2">
-          {daysOfWeek.map((day) => (
-            <div key={day} className="text-center text-zinc-400 text-sm font-medium">
-              {day}
-            </div>
-          ))}
-        </div>
-
-        {/* Dias do Mês */}
-        <div className="grid grid-cols-7 gap-1">
-          {renderDays()}
-        </div>
-      </div>
-
-      {/* Distribuição de Tempo */}
-      <div className="bg-[#1C3B4F] rounded-xl mx-4 p-4 mb-4">
-        <h2 className="text-xl font-bold text-white mb-4">Distribuição de Tempo (Hoje)</h2>
-        <div className="space-y-4">
-          {timeDistribution.map((item, index) => (
-            <div key={index}>
-              <div className="flex justify-between items-center mb-1">
-                <span className="text-white font-medium">{item.category}</span>
-                <span className="text-white">{item.time}</span>
+        {/* Bloco Distribuição */}
+        <div className="bg-[#1C3B4F]/50 backdrop-blur-md rounded-2xl p-5 border border-white/5 shadow-xl">
+          <h2 className="text-xl font-bold text-white mb-6">Distribuição de Tempo (Hoje)</h2>
+          <div className="space-y-5">
+            {timeDistribution.map((item, index) => (
+              <div key={index}>
+                <div className="flex justify-between items-center mb-2">
+                  <span className="text-white/90 text-sm font-medium">{item.category}</span>
+                  <span className="text-white/70 text-sm">{item.time}</span>
+                </div>
+                <div className="h-1.5 w-full bg-black/20 rounded-full overflow-hidden">
+                  <div 
+                    className={`${item.color} h-full rounded-full transition-all duration-700 ease-out`} 
+                    style={{ width: item.width }} 
+                  />
+                </div>
               </div>
-              <div className="h-2 rounded-full bg-gray-700">
-                <div className={`${item.color} h-2 rounded-full`} style={{ width: item.width }}></div>
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
+
       </div>
     </div>
   );
 }
-  
