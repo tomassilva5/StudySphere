@@ -5,7 +5,7 @@ import http from 'http';
 import { authController, socketAuthMiddleware } from './controllers/auth.controller';
 import { Server } from 'socket.io';
 import { chatBatcher } from './helpers/chatbatching';
-import { PORT, FRONTEND_URL } from './helpers/config'; // Import PORT and FRONTEND_URL
+import { PORT, FRONTEND_URL } from './helpers/config'; 
 
 const app = express()
 
@@ -18,7 +18,7 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: FRONTEND_URL, // Use FRONTEND_URL from config
+    origin: '*', 
     credentials: true, 
   }
 });
@@ -43,7 +43,7 @@ io.on('connection', (socket) => {
     });
   });
 });
-server.listen(PORT, () => { // Use PORT from config
+server.listen(3000, () => { 
   console.log('Server is running')
 })
 

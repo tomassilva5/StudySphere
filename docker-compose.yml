@@ -22,9 +22,6 @@ services:
     container_name: studysphere_backend
     ports:
       - "3000:3000"
-    volumes:
-      - ./backend:/app
-      - /app/node_modules
 
 
       
