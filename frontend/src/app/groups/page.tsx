@@ -105,18 +105,48 @@ export default function GroupsPage() {
     { id: 2, title: 'SIR', subtitle: 'StudySphere', members: ['FF', 'MA', 'TS'], totalMembers: 3, progress: 35, totalTasks: 30 }
   ]);
 
-  const handleCreateGroup = (data: any) => {
-    const initials = data.members.map((m: string) => m.substring(0, 2).toUpperCase());
-    const newGroup = {
-      id: Date.now(),
-      title: data.name,
-      subtitle: data.description || 'Sem descrição',
-      members: initials.length > 0 ? initials : ['EU'],
-      totalMembers: data.members.length + 1,
-      progress: 0,
-      totalTasks: 0
-    };
-    setGroups([...groups, newGroup]);
+  const handleCreateGroup = async (data: any) => {
+    try {
+      const payload = {
+        nome: data.name,
+        descricao: data.description || '',
+        membrosNomeUtilizador: data.members
+      };
+
+      console.log('Criando grupo:', payload);
+
+      const response = await fetch('/api/v1/groups', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        const createdGroup = await response.json();
+        console.log('Grupo criado:', createdGroup);
+
+        // Adicionar grupo à lista local
+        const initials = data.members.map((m: string) => m.substring(0, 2).toUpperCase());
+        const newGroup = {
+          id: createdGroup.id,
+          title: createdGroup.nome,
+          subtitle: createdGroup.descricao || 'Sem descrição',
+          members: initials.length > 0 ? initials : ['EU'],
+          totalMembers: createdGroup.membros?.length || 1,
+          progress: 0,
+          totalTasks: 0
+        };
+        setGroups([...groups, newGroup]);
+      } else {
+        const error = await response.json();
+        console.error('Erro ao criar grupo:', error);
+        alert('Erro ao criar grupo: ' + (error.message || 'Erro desconhecido'));
+      }
+    } catch (error) {
+      console.error('Erro na requisição:', error);
+      alert('Erro ao criar grupo');
+    }
   };
 
   return (

@@ -2,9 +2,10 @@ FROM node:22
 
 WORKDIR /app
 COPY package*.json ./
-RUN npm install
+# Clean, deterministic install with binaries for this platform
+RUN npm ci --ignore-scripts=false \
+	&& npm rebuild lightningcss || true
 
 COPY . .
 EXPOSE 5000
-RUN npx next build
-CMD npx next dev
+CMD node server.js

@@ -19,6 +19,9 @@ export default {
     userExists(nome_utilizador:string){
         return userDb.isUsernameIn(nome_utilizador)
     },
+    emailExists(email:string){
+        return userDb.isEmailIn(email)
+    },
     idByEmail(email:string){
         return userDb.idByEmail(email)
     },

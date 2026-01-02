@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { FiChevronRight, FiCalendar } from 'react-icons/fi';
 import { useRouter } from 'next/navigation';
 import { useTasks } from '@/app/providers/TaskContext';
+import { useAuth } from '@/app/providers/AuthContext';
 import HeaderDate from '@/app/components/HeaderDate'; 
 
 type TimeDistributionProps = {
@@ -16,7 +17,23 @@ export default function Dashboard() {
   const [calendarDate] = useState<Date>(new Date());
   const router = useRouter();
   const { tasks } = useTasks();
+  const { isAuthenticated, isLoading } = useAuth();
   const [timeDistribution, setTimeDistribution] = useState<TimeDistributionProps[]>([]);
+
+  // Proteção client-side
+  useEffect(() => {
+    if (!isLoading && !isAuthenticated) {
+      router.push('/login');
+    }
+  }, [isAuthenticated, isLoading, router]);
+
+  if (isLoading) {
+    return <div className="flex h-screen items-center justify-center text-white">A carregar...</div>;
+  }
+
+  if (!isAuthenticated) {
+    return null;
+  }
 
   // Lógica de cálculo
   useEffect(() => {

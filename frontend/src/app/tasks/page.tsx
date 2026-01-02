@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { FiCheckSquare, FiClock, FiTrash2, FiEdit2 } from 'react-icons/fi';
-import { useTasks, TaskType, type Task } from '@/app/providers/TaskContext';
+import { useTasks, TaskType, TaskPriority, TaskStatus, type Task } from '@/app/providers/TaskContext';
 
 // 1. IMPORTAR OS COMPONENTES REUTILIZÁVEIS
 import ButtonAdd from '../components/ButtonAdd';
@@ -82,11 +82,14 @@ function AddTaskForm({
   onAdd: (task: Omit<Task, 'id' | 'completed' | 'duration'>) => void;
 }) {
   const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
   const [type, setType] = useState<TaskType>('Universidade');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [startTime, setStartTime] = useState('09:00');
   const [endTime, setEndTime] = useState('10:00');
   const [repeat, setRepeat] = useState<RepeatType>('Nunca');
+  const [priority, setPriority] = useState<TaskPriority>('MEDIUM');
+  const [status, setStatus] = useState<TaskStatus>('scheduled');
 
   const parseTime = (time: string) => {
     const [hours, minutes] = time.split(':').map(Number);
@@ -104,8 +107,9 @@ function AddTaskForm({
   };
 
   const handleAdd = () => {
-    onAdd({ title, type, date, startTime, endTime, repeat });
+    onAdd({ title, description, type, date, startTime, endTime, repeat, priority, status });
     setTitle('');
+    setDescription('');
     onClose();
   };
 
@@ -126,6 +130,17 @@ function AddTaskForm({
           />
         </div>
         <div>
+          <label htmlFor="description" className="block text-white mb-2 text-sm">Descrição (opcional)</label>
+          <textarea
+            id="description"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={2}
+            className="w-full p-2.5 rounded-lg bg-zinc-800 text-white border border-zinc-700 focus:border-[#57F177] outline-none transition-colors resize-none"
+            placeholder="Ex: Sala 3.14, Trazer portátil"
+          />
+        </div>
+        <div>
           <label className="block text-white mb-2 text-sm">Tipo</label>
           <select
             value={type}
@@ -137,6 +152,35 @@ function AddTaskForm({
               <option key={key} value={key}>{key}</option>
             ))}
           </select>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-white mb-2 text-sm">Prioridade</label>
+            <select
+              value={priority}
+              onChange={(e) => setPriority(e.target.value as TaskPriority)}
+              className="w-full p-2.5 rounded-lg bg-zinc-800 text-white border border-zinc-700 outline-none"
+              required
+            >
+              <option value="LOW">Baixa</option>
+              <option value="MEDIUM">Média</option>
+              <option value="HIGH">Alta</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-white mb-2 text-sm">Estado</label>
+            <select
+              value={status}
+              onChange={(e) => setStatus(e.target.value as TaskStatus)}
+              className="w-full p-2.5 rounded-lg bg-zinc-800 text-white border border-zinc-700 outline-none"
+              required
+            >
+              <option value="scheduled">Agendado</option>
+              <option value="ongoing">Em andamento</option>
+              <option value="finished">Concluído</option>
+              <option value="cancelled">Cancelado</option>
+            </select>
+          </div>
         </div>
         <div>
           <label className="block text-white mb-2 text-sm">Data</label>
@@ -199,7 +243,7 @@ export default function TasksPage() {
   const { tasks, addTask, toggleTask } = useTasks();
   const [showAddModal, setShowAddModal] = useState(false);
 
-  const handleAddTask = useCallback((taskData: Omit<Task, 'id' | 'completed' | 'duration'>) => {
+  const handleAddTask = useCallback(async (taskData: Omit<Task, 'id' | 'completed' | 'duration'>) => {
     const start = new Date(`1970-01-01T${taskData.startTime}:00`);
     const end = new Date(`1970-01-01T${taskData.endTime}:00`);
     let duration = (end.getTime() - start.getTime()) / 3600000;
@@ -211,7 +255,7 @@ export default function TasksPage() {
       duration,
       ...taskData,
     };
-    addTask(newTask);
+    await addTask(newTask);
   }, [addTask]);
 
   const groupedTasks = tasks.reduce<Record<TaskType, Task[]>>((acc, task) => {

@@ -68,6 +68,15 @@ export default {
         return !!user;
     },
 
+    async isEmailIn(email: string) {
+        const user = await prisma.utilizador.findUnique({
+            where: {
+                email,
+            },
+        });
+        return !!user;
+    },
+
     async idByEmail(email: string) {
         const user = await prisma.utilizador.findUnique({
             where: { email: email },
