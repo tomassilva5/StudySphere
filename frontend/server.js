@@ -14,15 +14,30 @@ const apiProxy = createProxyMiddleware({
   target: 'http://backend:3000',
   changeOrigin: true,
   cookieDomainRewrite: '',
+  cookiePathRewrite: '/',
+  preserveHeaderKeyCase: true,
+  autoRewrite: true,
   onProxyReq: (proxyReq, req, res) => {
-    console.log('[Proxy] Request:', req.method, req.url);
-    console.log('[Proxy] Cookies:', req.headers.cookie || 'none');
+    const cookieHeader = req.headers.cookie;
+    if (cookieHeader) {
+      proxyReq.setHeader('Cookie', cookieHeader);
+    }
   },
   onProxyRes: (proxyRes, req, res) => {
-    console.log('[Proxy] Response:', proxyRes.statusCode);
-    const cookies = proxyRes.headers['set-cookie'];
-    if (cookies) {
-      console.log('[Proxy] Set-Cookie:', cookies);
+    const setCookies = proxyRes.headers['set-cookie'];
+    if (setCookies) {
+      const modifiedCookies = setCookies.map(cookie => {
+        let modified = cookie;
+        if (modified.toLowerCase().includes('samesite=none')) {
+          modified = modified.replace(/SameSite=None/gi, 'SameSite=Lax');
+        }
+        if (modified.includes('Secure;') || modified.includes('Secure ')) {
+          modified = modified.replace(/;\s*Secure/gi, '');
+        }
+        modified = modified.replace(/Domain=[^;]+;?\s*/gi, '');
+        return modified;
+      });
+      proxyRes.headers['set-cookie'] = modifiedCookies;
     }
   },
 });
@@ -49,6 +64,6 @@ app.prepare().then(() => {
       process.exit(1);
     })
     .listen(port, () => {
-      console.log(`> Ready on http://${hostname}:${port}`);
+      process.stdout.write(`> Ready on http://${hostname}:${port}\n`);
     });
 });
