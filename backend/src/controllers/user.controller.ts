@@ -1,6 +1,7 @@
 import userService from "../services/user.service";
 import { UserCreateDTO } from "../types/user.dto";
 import { Request, Response } from "express";
+import { Prisma } from "@prisma/client";
 
 export default {
     async getAll(req:Request, res:Response){
@@ -18,9 +19,17 @@ export default {
             if (userExists) {
                 return res.status(409).json({ message: "User already exists" });
             }
+            const emailExists = await userService.emailExists(data.email);
+            if (emailExists) {
+                return res.status(409).json({ message: "Email already exists" });
+            }
             const user = await userService.create(data)
             res.status(201).json(user);
         } catch (error) {
+            if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+                const target = Array.isArray(error.meta?.target) ? error.meta?.target.join(", ") : "field";
+                return res.status(409).json({ message: `Unique constraint failed on ${target}` });
+            }
             res.status(500).json({ message: "Error creating user" });
         }
     },

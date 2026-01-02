@@ -25,10 +25,10 @@ export type Task = {
 
 type TaskContextType = {
   tasks: Task[];
-  addTask: (task: Task) => void;
+  addTask: (task: Task) => Promise<void>;
   removeTask: (id: string) => void;
   toggleTask: (id: string) => void;
-  updateTask: (id: string, task: Partial<Task>) => void;
+  updateTask: (id: string, task: Partial<Task>) => Promise<void>;
 };
 
 const calculateDuration = (startTime: string, endTime: string): number => {
@@ -67,48 +67,54 @@ export function TaskProvider({ children }: { children: ReactNode }) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  const API_URL = '/api/v1';
+
   useEffect(() => {
+    const mapEventToTask = (evento: any): Task => {
+      const startDate = new Date(evento.data_inicio);
+      const endDate = new Date(evento.data_fim);
+
+      return {
+        id: evento.id,
+        title: evento.titulo,
+        description: evento.descricao,
+        type: dbToFrontendCategory(evento.categoria),
+        startTime: startDate.toTimeString().slice(0, 5),
+        endTime: endDate.toTimeString().slice(0, 5),
+        date: startDate.toISOString().split('T')[0],
+        repeat: evento.recorrencia,
+        duration: calculateDuration(startDate.toTimeString().slice(0, 5), endDate.toTimeString().slice(0, 5)),
+        completed: evento.estado === 'concluido',
+        priority: evento.prioridade === 'BAIXA' ? 'LOW' : evento.prioridade === 'MEDIA' ? 'MEDIUM' : 'HIGH',
+        status: (() => {
+          switch (evento.estado) {
+            case 'em_andamento':
+              return 'ongoing';
+            case 'concluido':
+              return 'finished';
+            case 'cancelado':
+              return 'cancelled';
+            default:
+              return 'scheduled';
+          }
+        })(),
+        startDate,
+        endDate,
+      };
+    };
+
     const fetchTasks = async () => {
       try {
-        const token = document.cookie
-          .split('; ')
-          .find(row => row.startsWith('authToken='))
-          ?.split('=')[1];
-
-        if (!token) {
-          setIsLoading(false);
-          return;
-        }
-
-        const response = await fetch('http://localhost:5000/api/eventos', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-          },
+        const response = await fetch(`${API_URL}/events/today`, {
+          credentials: 'include',
         });
 
         if (response.ok) {
           const eventos = await response.json();
-          const mappedTasks: Task[] = eventos.map((evento: any) => ({
-            id: evento.id,
-            title: evento.title,
-            description: evento.description,
-            type: dbToFrontendCategory(evento.category),
-            startTime: new Date(evento.startDate).toTimeString().slice(0, 5),
-            endTime: new Date(evento.endDate).toTimeString().slice(0, 5),
-            date: new Date(evento.startDate).toISOString().split('T')[0],
-            repeat: evento.recurrence,
-            duration: calculateDuration(
-              new Date(evento.startDate).toTimeString().slice(0, 5),
-              new Date(evento.endDate).toTimeString().slice(0, 5)
-            ),
-            completed: evento.status === 'finished',
-            priority: evento.priority,
-            status: evento.status,
-            startDate: new Date(evento.startDate),
-            endDate: new Date(evento.endDate),
-          }));
-          setTasks(mappedTasks);
+          setTasks(eventos.map(mapEventToTask));
+        } else {
+          const stored = localStorage.getItem('tasks');
+          if (stored) setTasks(JSON.parse(stored));
         }
       } catch (error) {
         console.error('Erro ao carregar tarefas:', error);
@@ -120,14 +126,71 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     };
 
     fetchTasks();
-  }, []);
+  }, [API_URL]);
 
   useEffect(() => {
     localStorage.setItem('tasks', JSON.stringify(tasks));
   }, [tasks]);
 
-  const addTask = (task: Task) => {
-    setTasks([...tasks, task]);
+  const taskStatusToBackend = (status: TaskStatus) => {
+    switch (status) {
+      case 'ongoing':
+        return 'em_andamento';
+      case 'finished':
+        return 'concluido';
+      case 'cancelled':
+        return 'cancelado';
+      default:
+        return 'agendado';
+    }
+  };
+
+  const taskPriorityToBackend = (priority: TaskPriority) => {
+    switch (priority) {
+      case 'LOW':
+        return 'BAIXA';
+      case 'MEDIUM':
+        return 'MEDIA';
+      default:
+        return 'ALTA';
+    }
+  };
+
+  const addTask = async (task: Task) => {
+    try {
+      const payload = {
+        titulo: task.title,
+        descricao: task.description,
+        data_inicio: new Date(`${task.date}T${task.startTime}:00`).toISOString(),
+        data_fim: new Date(`${task.date}T${task.endTime}:00`).toISOString(),
+        e_virtual: false,
+        prioridade: taskPriorityToBackend(task.priority),
+        categoria: frontendToDbCategory(task.type),
+        estado: taskStatusToBackend(task.status),
+      };
+
+      console.log('Payload enviado:', payload);
+      
+      const response = await fetch(`${API_URL}/events`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(payload),
+      });
+
+      console.log('Response status:', response.status);
+      const responseText = await response.text();
+      console.log('Response body:', responseText);
+
+      if (response.ok) {
+        const created = JSON.parse(responseText);
+        setTasks(prev => [...prev, { ...task, id: created.id }]);
+      } else {
+        console.error('Falha ao criar evento. Status:', response.status, 'Body:', responseText);
+      }
+    } catch (error) {
+      console.error('Erro ao criar evento', error);
+    }
   };
 
   const removeTask = (id: string) => {
@@ -142,10 +205,35 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     ));
   };
 
-  const updateTask = (id: string, updates: Partial<Task>) => {
-    setTasks(tasks.map(t =>
-      t.id === id ? { ...t, ...updates } : t
-    ));
+  const updateTask = async (id: string, updates: Partial<Task>) => {
+    try {
+      const original = tasks.find(t => t.id === id);
+      const merged = { ...original, ...updates } as Task;
+      const payload: any = {
+        titulo: merged.title,
+        descricao: merged.description,
+        data_inicio: new Date(`${merged.date}T${merged.startTime}:00`).toISOString(),
+        data_fim: new Date(`${merged.date}T${merged.endTime}:00`).toISOString(),
+        prioridade: taskPriorityToBackend(merged.priority),
+        categoria: frontendToDbCategory(merged.type),
+        estado: taskStatusToBackend(merged.status),
+      };
+
+      const response = await fetch(`${API_URL}/events/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        setTasks(prev => prev.map(t => (t.id === id ? merged : t)));
+      } else {
+        console.error('Falha ao atualizar evento');
+      }
+    } catch (error) {
+      console.error('Erro ao atualizar evento', error);
+    }
   };
 
   return (

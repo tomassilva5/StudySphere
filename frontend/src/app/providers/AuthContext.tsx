@@ -2,10 +2,15 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
+type User = {
+  name: string;
+  email: string;
+};
+
 type AuthContextType = {
   isAuthenticated: boolean;
   isLoading: boolean;
-  user: any | null;
+  user: User | null;
   login: (identifier: string, password: string) => Promise<{ success: boolean; error?: string }>;
   register: (data: { name: string; username: string; email: string; password: string }) => Promise<{ success: boolean; error?: string }>;
   logout: () => void;
@@ -16,83 +21,126 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [user, setUser] = useState(null);
+  const [user, setUser] = useState<User | null>(null);
+
+  // URL base do backend - agora usa proxy do Next.js na mesma origem
+  const API_URL = '/api/v1';
 
   useEffect(() => {
-    // Verificar se token existe em cookie (definido pelo servidor durante login)
-    const token = document.cookie
-      .split('; ')
-      .find((row) => row.startsWith('authToken='))
-      ?.split('=')[1];
-
-    if (token) {
-      setIsAuthenticated(true);
+    const checkSession = async () => {
       try {
-        // Tentar recuperar dados de utilizador se existirem
+        // Verificar se existe userData no localStorage primeiro
         const stored = localStorage.getItem('userData');
-        if (stored) setUser(JSON.parse(stored));
+        if (stored) {
+          setUser(JSON.parse(stored) as User);
+          setIsAuthenticated(true);
+          setIsLoading(false);
+          return;
+        }
+
+        // Tentar refresh se não houver userData
+        const response = await fetch(`${API_URL}/auth/refresh`, {
+          method: 'POST',
+          credentials: 'include',
+        });
+
+        if (response.ok) {
+          setIsAuthenticated(true);
+        } else {
+          setIsAuthenticated(false);
+          setUser(null);
+          localStorage.removeItem('userData');
+        }
       } catch {
+        setIsAuthenticated(false);
         setUser(null);
+      } finally {
+        setIsLoading(false);
       }
-    } else {
-      setIsAuthenticated(false);
-    }
-    setIsLoading(false);
-  }, []);
+    };
 
-
-  // URL base do backend
-  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    checkSession();
+  }, [API_URL]);
 
   const login = async (identifier: string, password: string) => {
+    if (!identifier || !password) {
+      return { success: false, error: 'Credenciais em falta.' };
+    }
+
+    const payload = identifier.includes('@')
+      ? { email: identifier, palavra_passe: password }
+      : { nome_utilizador: identifier, palavra_passe: password };
+
     try {
-      const res = await fetch(`${API_URL}/auth/login`, {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        credentials: 'include', // importante para cookies httpOnly
-        body: JSON.stringify({ identifier, password })
+        credentials: 'include',
+        body: JSON.stringify(payload),
       });
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
-        return { success: false, error: data.message || 'Erro ao autenticar.' };
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        return { success: false, error: body.message || 'Erro ao iniciar sessão.' };
       }
-      const data = await res.json();
-      // Espera-se que o backend envie user (token pode vir em cookie httpOnly)
-      if (data.user) {
-        localStorage.setItem('userData', JSON.stringify(data.user));
-        setUser(data.user);
-        setIsAuthenticated(true);
-        return { success: true };
-      }
-      return { success: false, error: 'Resposta inesperada do servidor.' };
-    } catch (err) {
-      return { success: false, error: 'Erro de rede.' };
+
+      const identity = payload.email ?? payload.nome_utilizador ?? '';
+      const userData = { name: identity.split('@')[0], email: payload.email ?? `${payload.nome_utilizador}@local` };
+      localStorage.setItem('userData', JSON.stringify(userData));
+      setUser(userData);
+      setIsAuthenticated(true);
+      return { success: true };
+    } catch (error) {
+      console.error('Erro no login', error);
+      return { success: false, error: 'Erro de ligação ao servidor.' };
     }
   };
 
   const register = async (data: { name: string; username: string; email: string; password: string }) => {
+    if (!data.email || !data.password) {
+      return { success: false, error: 'Dados em falta.' };
+    }
+
+    const payload = {
+      nome_completo: data.name,
+      nome_utilizador: data.username,
+      email: data.email,
+      palavra_passe: data.password,
+    };
+
     try {
-      const res = await fetch(`${API_URL}/auth/register`, {
+      const response = await fetch(`${API_URL}/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+        credentials: 'include',
+        body: JSON.stringify(payload),
       });
-      if (!res.ok) {
-        const resp = await res.json().catch(() => ({}));
-        return { success: false, error: resp.message || 'Erro ao registar.' };
+
+      if (!response.ok) {
+        const body = await response.json().catch(() => ({}));
+        return { success: false, error: body.message || 'Erro ao registar.' };
       }
+
+      const userData = { name: data.name || data.email.split('@')[0], email: data.email };
+      localStorage.setItem('userData', JSON.stringify(userData));
+      setUser(userData);
+      setIsAuthenticated(true);
       return { success: true };
-    } catch (err) {
-      return { success: false, error: 'Erro de rede.' };
+    } catch (error) {
+      console.error('Erro no registo', error);
+      return { success: false, error: 'Erro de ligação ao servidor.' };
     }
   };
 
   const logout = () => {
-    // Remover token de cookie
-    document.cookie = 'authToken=; path=/; max-age=0';
-    localStorage.removeItem('userData');
-    setIsAuthenticated(false);
-    setUser(null);
+    fetch(`${API_URL}/auth/logout`, {
+      method: 'POST',
+      credentials: 'include',
+    }).finally(() => {
+      localStorage.removeItem('userData');
+      setIsAuthenticated(false);
+      setUser(null);
+    });
   };
 
   return (
@@ -109,4 +157,3 @@ export function useAuth() {
   }
   return context;
 }
-

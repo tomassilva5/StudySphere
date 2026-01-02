@@ -3,8 +3,7 @@ FROM node:22
 WORKDIR /app
 
 COPY package*.json ./
-
-COPY node_modules ./node_modules
+RUN npm ci
 
 COPY tsconfig.json ./
 COPY src ./src

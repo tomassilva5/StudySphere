@@ -10,7 +10,7 @@ export const PORT = process.env.PORT || 3000;
 
 export const COOKIES_OPTIONS = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
+    secure: false,
     sameSite: "lax" as const,
     path: "/",
 };
