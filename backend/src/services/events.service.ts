@@ -13,5 +13,8 @@ export default{
     },
     modifyEvents(id:string , input:EventoUpdate){
         return eventsDb.modifyEvents(id, input)
+    },
+    deleteEvent(id:string, userId:string){
+        return eventsDb.deleteEvent(id, userId)
     }
 }

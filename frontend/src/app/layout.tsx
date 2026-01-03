@@ -4,6 +4,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "./providers/AuthContext";
 import { TaskProvider } from "./providers/TaskContext";
+import { UIProvider } from "./providers/UIContext";
+import { NotificationProvider } from "./providers/NotificationContext";
 import BottomTabs from "./components/BottomTabs";
 import { usePathname } from "next/navigation";
 
@@ -33,8 +35,12 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
       >
         <AuthProvider>
           <TaskProvider>
-            {children}
-            {!shouldHideTabs && <BottomTabs />}
+            <NotificationProvider>
+              <UIProvider>
+                {children}
+                {!shouldHideTabs && <BottomTabs />}
+              </UIProvider>
+            </NotificationProvider>
           </TaskProvider>
         </AuthProvider>
       </body>

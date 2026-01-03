@@ -41,5 +41,15 @@ export default {
         } catch (error) {
             res.status(500).json({ message: "Error modifying event", error });
         }
+    },
+    async deleteEvent(req:Request, res:Response){
+        try {
+            const { id } = req.params;
+            const userId = req.user!.id;
+            await eventsService.deleteEvent(id, userId);
+            res.status(200).json({ message: "Event deleted successfully" });
+        } catch (error) {
+            res.status(500).json({ message: "Error deleting event", error });
+        }
     }
 }

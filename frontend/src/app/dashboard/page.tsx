@@ -56,9 +56,16 @@ export default function Dashboard() {
 
     const totalTime = Object.values(categoryTimes).reduce((sum, time) => sum + time, 0);
     
+    // Formatar tempo em formato "h:mm"
+    const formatTime = (hours: number) => {
+      const h = Math.floor(hours);
+      const m = Math.round((hours - h) * 60);
+      return `${h}:${m.toString().padStart(2, '0')}h`;
+    };
+    
     setTimeDistribution(categories.map(c => ({
       category: c.name,
-      time: `${categoryTimes[c.type]}h`,
+      time: formatTime(categoryTimes[c.type]),
       color: c.color,
       width: `${totalTime > 0 ? (categoryTimes[c.type] / Math.max(totalTime, 24)) * 100 : 0}%`,
     })));

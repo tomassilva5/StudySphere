@@ -26,7 +26,7 @@ export type Task = {
 type TaskContextType = {
   tasks: Task[];
   addTask: (task: Task) => Promise<void>;
-  removeTask: (id: string) => void;
+  removeTask: (id: string) => Promise<void>;
   toggleTask: (id: string) => void;
   updateTask: (id: string, task: Partial<Task>) => Promise<void>;
 };
@@ -67,7 +67,8 @@ export function TaskProvider({ children }: { children: ReactNode }) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const API_URL = 'http://localhost:3000/api/v1';
+  // Usar caminho relativo para passar pelo proxy Next.js (igual ao AuthContext)
+  const API_URL = '/api/v1';
 
   useEffect(() => {
     const mapEventToTask = (evento: any): Task => {
@@ -168,8 +169,6 @@ export function TaskProvider({ children }: { children: ReactNode }) {
         categoria: frontendToDbCategory(task.type),
         estado: taskStatusToBackend(task.status),
       };
-
-      console.log('Payload enviado:', payload);
       
       const response = await fetch(`${API_URL}/events`, {
         method: 'POST',
@@ -178,23 +177,30 @@ export function TaskProvider({ children }: { children: ReactNode }) {
         body: JSON.stringify(payload),
       });
 
-      console.log('Response status:', response.status);
-      const responseText = await response.text();
-      console.log('Response body:', responseText);
-
       if (response.ok) {
-        const created = JSON.parse(responseText);
+        const created = await response.json();
         setTasks(prev => [...prev, { ...task, id: created.id }]);
-      } else {
-        console.error('Falha ao criar evento. Status:', response.status, 'Body:', responseText);
       }
     } catch (error) {
       console.error('Erro ao criar evento', error);
     }
   };
 
-  const removeTask = (id: string) => {
-    setTasks(tasks.filter(t => t.id !== id));
+  const removeTask = async (id: string) => {
+    try {
+      const response = await fetch(`${API_URL}/events/${id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        setTasks(tasks.filter(t => t.id !== id));
+      } else {
+        console.error('Falha ao apagar evento');
+      }
+    } catch (error) {
+      console.error('Erro ao apagar evento', error);
+    }
   };
 
   const toggleTask = (id: string) => {

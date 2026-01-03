@@ -2,14 +2,20 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/app/providers/AuthContext';
+import { useUI } from '@/app/providers/UIContext';
 import { HiOutlineHome, HiOutlineCheckCircle, HiBars3 } from 'react-icons/hi2';
 import { MdGroups } from "react-icons/md";
 
 export default function BottomTabs() {
   const pathname = usePathname();
   const { isAuthenticated } = useAuth();
+  const { isBottomTabsVisible } = useUI();
 
   if (!isAuthenticated || pathname === '/login' || pathname === '/register' || pathname === '/loading' || pathname === '/calendar' || pathname === '/intro') {
+    return null;
+  }
+
+  if (!isBottomTabsVisible) {
     return null;
   }
 
