@@ -27,8 +27,10 @@ export default function LoginPage() {
         setError('');
         if (!isFormValid) return;
         setIsLoading(true);
+        
         const result = await login(identifier, password);
         setIsLoading(false);
+        
         if (result.success) {
             router.push('/dashboard');
         } else {
@@ -39,19 +41,20 @@ export default function LoginPage() {
     return (
         <div className="flex h-screen flex-col overflow-hidden" style={{background: 'var(--background)' }}>
 
-            <div className="flex-1 flex flex-col items-center justify-start pt-4 px-6 overflow-y-auto">
+            <div className="flex-1 flex flex-col items-center justify-start pt-6 px-6 overflow-y-auto -mt-3">
 
-                {/* Logo + Frase */}
-                <div className="mb-4 flex flex-col items-center text-center">
+                {/* Logo + Frase (Ajustado com as margens do Registo) */}
+                <div className="flex flex-col items-center text-center">
                     <div className="relative mb-0 h-[268px] w-[268px]">
                         <Image src="/Logo/Logo.jpg" alt="Logo" fill className="object-contain rounded-full" priority />
                     </div>
-                    <p className="text-gray-200 text-base font-bold tracking-wide mt-0">
+                    {/* -mt-1 para aproximar do logo e mb-6 para afastar do campo */}
+                    <p className="text-gray-200 text-base font-bold tracking-wide -mt-1 mb-6 relative z-10">
                         Acede à tua conta para continuar
                     </p>
                 </div>
 
-                <form onSubmit={handleLogin} className="w-full max-w-sm space-y-4">
+                <form onSubmit={handleLogin} className="w-full max-w-sm space-y-4 relative z-10">
 
                     <InputField
                         id="identifier"
@@ -75,7 +78,8 @@ export default function LoginPage() {
                         />
 
                         <div className="flex justify-end">
-                            <Link href="#" className="text-xs text-[#6EE7B7] hover:underline opacity-80 pt-1">
+                            {/* LIGAÇÃO PARA A PÁGINA EM DESENVOLVIMENTO */}
+                            <Link href="/development" className="text-xs text-[#6EE7B7] hover:underline opacity-80 pt-1">
                                 Esqueceu a Palavra-passe?
                             </Link>
                         </div>

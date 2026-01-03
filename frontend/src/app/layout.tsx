@@ -1,9 +1,11 @@
-import type { Metadata } from "next";
+'use client'; // Necessário para detetar a rota atual
+
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "./providers/AuthContext";
 import { TaskProvider } from "./providers/TaskContext";
 import BottomTabs from "./components/BottomTabs";
+import { usePathname } from "next/navigation";
 
 const geistSans = Geist({
   subsets: ["latin"],
@@ -15,12 +17,12 @@ const geistMono = Geist_Mono({
   variable: "--font-geist-mono",
 });
 
-export const metadata: Metadata = {
-  title: "StudySphere",
-  description: "Gerencie suas tarefas e tempo de estudo",
-};
-
 function LayoutContent({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+
+  const hideTabsPaths = ["/login", "/register", "/development"];
+  const shouldHideTabs = hideTabsPaths.includes(pathname);
+
   return (
     <html lang="pt" suppressHydrationWarning>
       <body 
@@ -32,7 +34,7 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
         <AuthProvider>
           <TaskProvider>
             {children}
-            <BottomTabs />
+            {!shouldHideTabs && <BottomTabs />}
           </TaskProvider>
         </AuthProvider>
       </body>

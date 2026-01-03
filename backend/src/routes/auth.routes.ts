@@ -4,12 +4,13 @@ import { signAccessToken, signRefreshToken, hashToken, verifyTokenHash} from "..
 import { Request, Response } from "express";
 import { COOKIES_OPTIONS, REFRESH_TOKEN_SECRET } from "../helpers/config";
 import { UserLogin } from "../types/user.dto";
-import  userService  from "../services/user.service";
+import userService from "../services/user.service";
 import userController from "../controllers/user.controller";
-
 import refreshService from "../services/refresh.service";
 
 const router = Router();
+
+router.get("/check-availability", userController.checkAvailability);
 
 router.post("/register", userController.create);
 
@@ -22,7 +23,7 @@ router.post("/login", async (req:Request, res:Response) => {
 
     const valid = await userService.loginUser(data);
     if (!valid) {
-      return res.status(401).json({ message: "Invalid credentials" });
+      return res.status(401).json({ message: "Credenciais inválidas" });
     }
 
     const id = data.email
@@ -30,7 +31,7 @@ router.post("/login", async (req:Request, res:Response) => {
       : await userService.idByUsername(data.nome_utilizador!);
 
     if (!id) {
-      return res.status(401).json({ message: "Invalid credentials" });
+      return res.status(401).json({ message: "Credenciais inválidas" });
     }
 
     const identity = data.email ?? data.nome_utilizador!;
@@ -58,8 +59,7 @@ router.post("/login", async (req:Request, res:Response) => {
     });
 
     return res.json({ ok: true, identity });
-
-})
+});
 
 router.post("/refresh", async (req:Request, res:Response) => {
     const token = req.cookies?.refreshToken;
@@ -94,7 +94,6 @@ router.post("/refresh", async (req:Request, res:Response) => {
       await refreshService.deleteRefreshToken(token);
       await refreshService.createRefreshToken(payload.sub, newRefresh);
 
-
       res.cookie("accessToken", newAccess, {
         ...COOKIES_OPTIONS,
         maxAge: 15 * 60 * 1000,
@@ -126,4 +125,5 @@ router.post("/logout", async (req:Request, res:Response) => {
 
     res.json({ ok: true });
 });
+
 export default router;
