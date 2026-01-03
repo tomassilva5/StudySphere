@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import InputField from '../components/InputField';
-import { HiCheck, HiX } from "react-icons/hi";
+import { HiCheck, HiX, HiOutlineRefresh } from "react-icons/hi";
 import { useAuth } from '@/app/providers/AuthContext';
 
 export default function RegisterPage() {
@@ -17,16 +17,28 @@ export default function RegisterPage() {
     const [password, setPassword] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
-    // Validação Username
+    const [formSubmitted, setFormSubmitted] = useState(false);
+
+    const [isUsernameAvailable, setIsUsernameAvailable] = useState<boolean | null>(null);
+    const [isEmailAvailable, setIsEmailAvailable] = useState<boolean | null>(null);
+    const [isChecking, setIsChecking] = useState({ username: false, email: false });
+
     const usernameRegex = /^[a-zA-Z0-9._]+$/;
-    const isUsernameValid = username === '' || usernameRegex.test(username);
-    const showUsernameError = username !== '' && !isUsernameValid;
-    // Validação Password
+    const isUsernameLongEnough = username.length >= 3;
+    const isUsernameRegexMatch = usernameRegex.test(username);
+    const isUsernameValid = isUsernameLongEnough && isUsernameRegexMatch;
+    
+    const usernameErrorMessage = !isUsernameLongEnough 
+        ? "O nome de utilizador deve ter no mínimo 3 caracteres."
+        : !isUsernameRegexMatch 
+        ? "Não são permitidos caracteres especiais."
+        : "";
+
     const [hasNumber, setHasNumber] = useState(false);
     const [hasCase, setHasCase] = useState(false);
     const [hasLength, setHasLength] = useState(false);
-    // Validação Email
     const [isEmailValid, setIsEmailValid] = useState(false);
+
     useEffect(() => {
         setHasNumber(/\d/.test(password));
         setHasCase(/[a-z]/.test(password) && /[A-Z]/.test(password));
@@ -34,16 +46,59 @@ export default function RegisterPage() {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         setIsEmailValid(emailRegex.test(email));
     }, [password, email]);
+
+    useEffect(() => {
+        if (!isUsernameValid) {
+            setIsUsernameAvailable(null);
+            return;
+        }
+        const timeout = setTimeout(async () => {
+            setIsChecking(prev => ({ ...prev, username: true }));
+            try {
+                const res = await fetch(`http://localhost:3000/api/v1/auth/check-availability?username=${username}`);
+                const data = await res.json();
+                setIsUsernameAvailable(data.available);
+            } catch (err) {
+                setIsUsernameAvailable(null);
+            } finally {
+                setIsChecking(prev => ({ ...prev, username: false }));
+            }
+        }, 500);
+        return () => clearTimeout(timeout);
+    }, [username, isUsernameValid]);
+
+    useEffect(() => {
+        if (!isEmailValid) {
+            setIsEmailAvailable(null);
+            return;
+        }
+        const timeout = setTimeout(async () => {
+            setIsChecking(prev => ({ ...prev, email: true }));
+            try {
+                const res = await fetch(`http://localhost:3000/api/v1/auth/check-availability?email=${email}`);
+                const data = await res.json();
+                setIsEmailAvailable(data.available);
+            } catch (err) {
+                setIsEmailAvailable(null);
+            } finally {
+                setIsChecking(prev => ({ ...prev, email: false }));
+            }
+        }, 500);
+        return () => clearTimeout(timeout);
+    }, [email, isEmailValid]);
+
     const isPasswordValid = hasNumber && hasCase && hasLength;
     const showEmailError = email.length > 0 && !isEmailValid;
+    
     const isFormValid =
         name.trim() !== '' &&
-        username.trim() !== '' &&
-        isUsernameValid &&
-        isEmailValid &&
+        isUsernameAvailable === true &&
+        isEmailAvailable === true &&
         isPasswordValid;
+
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
+        setFormSubmitted(true);
         setError('');
         if (!isFormValid) return;
         setIsLoading(true);
@@ -65,23 +120,20 @@ export default function RegisterPage() {
 
     return (
         <div className="flex h-screen flex-col overflow-hidden" style={{background: 'var(--background)'}}> 
-
-            {/* --- CONTEÚDO SUPERIOR --- */}
-            <div className="flex-1 flex flex-col items-center justify-start -mt-3 px-6 overflow-y-auto">
+            <div className="flex-1 flex flex-col items-center justify-start -mt-3 px-6 overflow-y-auto pt-6">
                 
-                <div className="mb-2 flex flex-col items-center text-center">
+                <div className="flex flex-col items-center text-center">
                     <div className="relative mb-0 h-[268px] w-[268px]"> 
                         <Image src="/Logo/Logo.jpg" alt="Logo" fill className="object-contain rounded-full" priority />
                     </div>
-
-                    <p className="text-gray-200 text-base font-bold tracking-wide mt-0">
+                    {/* ALTERADO: -mt-1 para baixar o texto e mb-6 para afastar do campo */}
+                    <p className="text-gray-200 text-base font-bold tracking-wide -mt-1 mb-4 relative z-10">
                         Crie a sua conta
                     </p>
                 </div>
 
-                <form id="register-form" onSubmit={handleRegister} className="w-full max-w-sm space-y-4">
-                    
-                    {/* Nome Completo */}
+                {/* ALTERADO: Removido o -mt-1 para dar mais espaço natural */}
+                <form id="register-form" onSubmit={handleRegister} className="w-full max-w-sm space-y-4 relative z-10">
                     <InputField
                         id="name"
                         label="Nome Completo"
@@ -89,10 +141,10 @@ export default function RegisterPage() {
                         value={name}
                         onChange={(e) => setName(e.target.value)}
                         required
+                        error={formSubmitted && name.trim() === ''}
                     />
 
-                    {/* Username */}
-                    <div>
+                    <div className="relative">
                         <InputField
                             id="username"
                             label="Nome de Utilizador"
@@ -100,17 +152,22 @@ export default function RegisterPage() {
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                             required
+                            error={(username !== '' && !isUsernameValid) || isUsernameAvailable === false} 
                         />
-
-                        {showUsernameError && (
-                            <p className="text-xs text-red-400 pl-2 mt-1">
-                                O nome de utilizador só pode incluir letras, números, underscores e pontos.
-                            </p>
+                        <div className="absolute right-3 top-10">
+                            {isChecking.username && <HiOutlineRefresh className="animate-spin text-gray-400" />}
+                            {!isChecking.username && isUsernameAvailable === true && <HiCheck className="text-green-500" />}
+                            {!isChecking.username && isUsernameAvailable === false && <HiX className="text-red-500" />}
+                        </div>
+                        {username !== '' && !isUsernameValid && (
+                            <p className="text-xs text-red-400 pl-2 mt-1">{usernameErrorMessage}</p> 
+                        )}
+                        {isUsernameValid && isUsernameAvailable === false && (
+                            <p className="text-xs text-red-400 pl-2 mt-1">Este nome de utilizador já existe.</p>
                         )}
                     </div>
 
-                    {/* Email */}
-                    <div>
+                    <div className="relative">
                         <InputField 
                             id="email" 
                             label="E-mail" 
@@ -118,16 +175,21 @@ export default function RegisterPage() {
                             value={email} 
                             onChange={(e) => setEmail(e.target.value)} 
                             required 
-                            error={showEmailError}
+                            error={showEmailError || isEmailAvailable === false}
                         />
+                        <div className="absolute right-3 top-10">
+                            {isChecking.email && <HiOutlineRefresh className="animate-spin text-gray-400" />}
+                            {!isChecking.email && isEmailAvailable === true && <HiCheck className="text-green-500" />}
+                            {!isChecking.email && isEmailAvailable === false && <HiX className="text-red-500" />}
+                        </div>
                         {showEmailError && (
-                            <p className="text-xs text-red-400 pl-2 mt-1">
-                                E-mail inválido. Use o formato nome@domínio.com
-                            </p>
+                            <p className="text-xs text-red-400 pl-2 mt-1">E-mail inválido. Use o formato nome@dominio.com</p>
+                        )}
+                        {isEmailAvailable === false && (
+                            <p className="text-xs text-red-400 pl-2 mt-1">Este e-mail já está em uso.</p>
                         )}
                     </div>
 
-                    {/* Password */}
                     <div>
                         <InputField 
                             id="password" 
@@ -136,23 +198,20 @@ export default function RegisterPage() {
                             value={password} 
                             onChange={(e) => setPassword(e.target.value)} 
                             required 
-                            error={password.length > 0 && !isPasswordValid}
+                            error={password.length > 0 && !isPasswordValid} 
                         />
-
                         {password.length > 0 && (
                             <div className="mt-2 pl-2 space-y-1">
                                 <ValidationItem isValid={hasNumber} text="Incluir um número" />
                                 <ValidationItem isValid={hasCase} text="Incluir maiúsculas e minúsculas" />
-                                <ValidationItem isValid={hasLength} text="A palavra-passe deve ter no mínimo 8 caracteres" />
+                                <ValidationItem isValid={hasLength} text="Mínimo 8 caracteres" />
                             </div>
                         )}
                     </div>
                 </form>
             </div>
 
-            {/* --- RODAPÉ --- */}
-            <div className="w-full bg-[#06141F] border-t-2 border-gray-700 px-6 py-6 flex flex-col items-center gap-3 bg-gradient-to-t from-[#1C3B4F] to-[#06141F]">
-
+            <div className="w-full bg-[#06141F] border-t-2 border-gray-700 px-6 py-4 flex flex-col items-center gap-3 bg-gradient-to-t from-[#1C3B4F] to-[#06141F]">
                 <button
                     type="submit"
                     form="register-form"
@@ -166,16 +225,12 @@ export default function RegisterPage() {
                     {isLoading ? "A criar conta..." : "Registar"}
                 </button>
                 {error && (
-                    <div className="p-3 rounded-lg bg-red-900/30 border border-red-500 text-red-200 text-sm text-center mt-2">
+                    <div className="p-3 rounded-lg bg-red-900/30 border border-red-500 text-red-200 text-sm text-center">
                         {error}
                     </div>
                 )}
-
                 <Link href="/login" className="w-full max-w-sm">
-                    <button 
-                        type="button"
-                        className="w-full rounded-xl border-2 border-[#6EE7B7] py-3.5 text-[#6EE7B7] font-bold tracking-wide hover:bg-[#6EE7B7] hover:text-[#06141F] transition-all"
-                    >
+                    <button type="button" className="w-full rounded-xl border-2 border-[#6EE7B7] py-3 text-[#6EE7B7] font-bold tracking-wide hover:bg-[#6EE7B7] hover:text-[#06141F] transition-all">
                         Voltar
                     </button>
                 </Link>

@@ -6,19 +6,18 @@ import chatRoutes from './protected/chat.routes';
 import eventsRoutes from './protected/events.routes';
 import grupoRoutes from './protected/grupo.routes';
 import userController from "../controllers/user.controller";
-
 import googleAuthRoutes from './google.routes';
 import googleRoutes from './protected/google.routes';
 
 const router = Router();
 
-// Public routes
+router.get("/auth/check-availability", userController.checkAvailability); 
 router.use('/auth', authRoutes);
 router.use('/auth/google', googleAuthRoutes);
+
 router.get("/usersnames", userController.getUsernames);
 router.get("/users/:nome_utilizador", userController.getUser);
 
-// Protected routes
 router.use(authController);
 
 router.use('/users', userRoutes);
