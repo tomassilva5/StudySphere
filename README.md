@@ -96,19 +96,19 @@ cd study_sphere
 Crie/edite o ficheiro `backend/.env`:
 
 ```env
-# Database
-DATABASE_URL="mongodb+srv://username:password@cluster.mongodb.net/studysphere?retryWrites=true&w=majority"
+# Database (MongoDB Atlas)
+DATABASE_URL="mongodb+srv://username:password@cluster.mongodb.net/studysphere?retryWrites=true&w=majority&appName=StudySphere"
 
-# JWT Secrets (altere para valores seguros em produção)
-JWT_SECRET=your_jwt_secret_here
-ACCESS_TOKEN_SECRET=your_access_token_secret
-REFRESH_TOKEN_SECRET=your_refresh_token_secret
+# JWT Secrets (ALTERE para valores seguros em produção!)
+JWT_SECRET=EUSOUOMAIOR
+ACCESS_TOKEN_SECRET=superlongrandomsecret
+REFRESH_TOKEN_SECRET=anotherlongrandomsecret
 
 # Token Expiration
 ACCESS_TOKEN_EXP=15m
 REFRESH_TOKEN_EXP=7d
 
-# Server
+# Server Configuration
 PORT=3000
 FRONTEND_URL=http://localhost:5000
 ```
@@ -169,6 +169,8 @@ docker compose restart
 ### Autenticação
 
 ```
+GET  /api/v1/auth/check-availability?username=nome (verifica disponibilidade)
+GET  /api/v1/auth/check-availability?email=email@example.com
 POST /api/v1/auth/register
 POST /api/v1/auth/login
 POST /api/v1/auth/refresh
@@ -227,6 +229,37 @@ ws://localhost:3000
 - JWT assinados com secrets fortes
 - CORS configurado para permitir credenciais
 
+## 🔄 Mapeamento de Dados (Frontend ↔ Backend)
+
+O frontend usa português com espaços enquanto o backend usa português com underscores. O **TaskContext.tsx** faz o mapeamento automático:
+
+### Categorias
+```typescript
+Frontend          →  Backend
+"Universidade"    →  "Universidade"
+"Estudo Individual" → "Estudo_Individual"
+"Estudo de Grupo"  → "Estudo_Grupo"
+"Eventos Pessoais" → "Eventos_Pessoais"
+"Lazer"           →  "Lazer"
+```
+
+### Estados de Tarefa
+```typescript
+Frontend      →  Backend
+"scheduled"   →  "agendado"
+"ongoing"     →  "em_andamento"
+"finished"    →  "concluido"
+"cancelled"   →  "cancelado"
+```
+
+### Prioridades
+```typescript
+Frontend   →  Backend
+"LOW"      →  "BAIXA"
+"MEDIUM"   →  "MEDIA"
+"HIGH"     →  "ALTA"
+```
+
 ## 🔄 Arquitetura de Proxy
 
 O frontend usa um servidor Node.js customizado (`server.js`) que:
@@ -243,39 +276,83 @@ Browser → localhost:5000/api/v1/events → Proxy → backend:3000/api/v1/event
 
 ## 🗄️ Schema da Base de Dados
 
-### User
+### Utilizador
 - `id`: String (MongoDB ObjectId)
+- `nome_utilizador`: String (único) - username
 - `email`: String (único)
-- `username`: String (único)
-- `nome`: String
-- `password`: String (hashed)
-- `googleId`: String? (opcional)
-- `createdAt`: DateTime
-- `updatedAt`: DateTime
+- `nome_completo`: String? (opcional)
+- `palavra_passe`: String (hashed)
+- `id_calendario_externo`: String? (Google Calendar ID)
+- `google_access_token`: String? (opcional)
+- `google_refresh_token`: String? (opcional)
+- `criado_em`: DateTime
 
-### Event
-- `id`: String
+### Evento
+- `id`: String (MongoDB ObjectId)
 - `titulo`: String
-- `descricao`: String?
-- `data`: DateTime
-- `tipo`: String
-- `userId`: String (FK → User)
-- `googleEventId`: String?
-- `createdAt`: DateTime
-- `updatedAt`: DateTime
+- `descricao`: String? (opcional)
+- `data_inicio`: DateTime
+- `data_fim`: DateTime
+- `e_virtual`: Boolean
+- `link_reuniao`: String? (opcional)
+- `prioridade`: Enum (BAIXA, MEDIA, ALTA)
+- `estado`: Enum (agendado, em_andamento, concluido, cancelado)
+- `categoria`: Enum (Universidade, Estudo_Individual, Estudo_Grupo, Eventos_Pessoais, Lazer)
+- `etiquetas`: String? (opcional)
+- `recorrencia`: JSON? (configuração de repetição)
+- `sincronizacao_externa`: JSON? (dados Google Calendar)
+- `utilizador_id`: String (FK → Utilizador)
+- `criado_em`: DateTime
 
 ### Grupo
-- `id`: String
+- `id`: String (MongoDB ObjectId)
 - `nome`: String
-- `descricao`: String?
-- `createdAt`: DateTime
-- `membros`: User[] (relação many-to-many)
+- `descricao`: String? (opcional)
+- `criado_em`: DateTime
+- `membros`: Utilizador[] (relação many-to-many via GrupoUtilizador)
 
 ### RefreshToken
+- `id`: String (MongoDB ObjectId)
+- `token_hash`: String (único, hashed)
+- `expira_em`: DateTime
+- `utilizador_id`: String (FK → Utilizador)
+- `criado_em`: DateTime
+
+### Modelos Adicionais
+
+**GrupoUtilizador** (tabela pivot)
 - `id`: String
-- `token`: String (único)
-- `userId`: String (FK → User)
-- `createdAt`: DateTime
+- `grupo_id`: String (FK → Grupo)
+- `utilizador_id`: String (FK → Utilizador)
+- `criado_em`: DateTime
+
+**EventoGrupo** (eventos de grupo)
+- `id`: String
+- `evento_id`: String (FK → Evento)
+- `grupo_id`: String (FK → Grupo)
+- `criado_em`: DateTime
+
+**Conversa** (chat)
+- `id`: String
+- `nome`: String?
+- `membros`: String[] (array de IDs)
+- `tipo`: Enum (direta, grupo)
+- `criado_em`: DateTime
+
+**Mensagem**
+- `id`: String
+- `conversa_id`: String (FK → Conversa)
+- `remetente_id`: String
+- `conteudo`: String?
+- `data_envio`: DateTime
+- `lido_por`: String[] (array de IDs)
+- `caminho_ficheiro`: String? (para anexos)
+
+**Historico** (audit log)
+- `id`: String
+- `utilizador_id`: String (FK → Utilizador)
+- `acao`: String
+- `criado_em`: DateTime
 
 ## 🧪 Testar a Aplicação
 

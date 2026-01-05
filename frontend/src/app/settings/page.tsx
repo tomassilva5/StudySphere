@@ -82,7 +82,7 @@ export default function Settings() {
             <h3 className="text-gray-400 text-sm font-medium mb-2 px-2">Conta</h3>
             <div className="bg-[#1C3B4F]/30 border border-gray-700/50 rounded-2xl overflow-hidden">
               <SettingItem icon={HiUser} label="Editar informações pessoais" color="text-[#6EE7B7]" onClick={() => setIsEditModalOpen(true)} />
-              <SettingItem icon={HiBell} label="Notificações" color="text-[#6EE7B7]" />
+              <SettingItem icon={HiBell} label="Notificações" color="text-[#6EE7B7]" onClick={() => router.push('/notifications')} />
               <SettingItem icon={HiGlobeAlt} label="Idioma" color="text-[#6EE7B7]" />
             </div>
           </div>
