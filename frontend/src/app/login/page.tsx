@@ -78,7 +78,6 @@ export default function LoginPage() {
                         />
 
                         <div className="flex justify-end">
-                            {/* LIGAÇÃO PARA A PÁGINA EM DESENVOLVIMENTO */}
                             <Link href="/development" className="text-xs text-[#6EE7B7] hover:underline opacity-80 pt-1">
                                 Esqueceu a Palavra-passe?
                             </Link>

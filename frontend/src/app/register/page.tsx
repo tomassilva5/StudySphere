@@ -126,13 +126,11 @@ export default function RegisterPage() {
                     <div className="relative mb-0 h-[268px] w-[268px]"> 
                         <Image src="/Logo/Logo.jpg" alt="Logo" fill className="object-contain rounded-full" priority />
                     </div>
-                    {/* ALTERADO: -mt-1 para baixar o texto e mb-6 para afastar do campo */}
                     <p className="text-gray-200 text-base font-bold tracking-wide -mt-1 mb-4 relative z-10">
                         Crie a sua conta
                     </p>
                 </div>
 
-                {/* ALTERADO: Removido o -mt-1 para dar mais espaço natural */}
                 <form id="register-form" onSubmit={handleRegister} className="w-full max-w-sm space-y-4 relative z-10">
                     <InputField
                         id="name"
