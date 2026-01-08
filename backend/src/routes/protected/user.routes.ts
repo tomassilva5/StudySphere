@@ -3,6 +3,7 @@ import userController from "../../controllers/user.controller";
 
 const router = Router();
 
+router.get("/search", userController.searchUsers)
 router.get("/", userController.getAll)
 router.get("/:id", userController.getById)
 

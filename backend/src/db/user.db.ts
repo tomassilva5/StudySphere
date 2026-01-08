@@ -41,6 +41,46 @@ export default {
         return user;
     },
 
+    async searchUsers(query: string) {
+        if (!query || query.trim().length === 0) {
+            return [];
+        }
+
+        const users = await prisma.utilizador.findMany({
+            where: {
+                OR: [
+                    {
+                        nome_utilizador: {
+                            contains: query,
+                            mode: 'insensitive'
+                        }
+                    },
+                    {
+                        nome_completo: {
+                            contains: query,
+                            mode: 'insensitive'
+                        }
+                    },
+                    {
+                        email: {
+                            contains: query,
+                            mode: 'insensitive'
+                        }
+                    }
+                ]
+            },
+            select: {
+                id: true,
+                nome_utilizador: true,
+                nome_completo: true,
+                email: true,
+            },
+            take: 10
+        });
+
+        return users;
+    },
+
     async verifypassword(data: UserLogin) {
         if (!data.nome_utilizador && !data.email) {
             return false;

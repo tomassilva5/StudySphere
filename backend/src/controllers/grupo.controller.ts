@@ -3,9 +3,19 @@ import grupoService from "../services/grupo.service";
 import { GrupoCreateDTO, GrupoAddUsersDTO } from "../types/grupo.dto";
 
 export default {
+    async getUserGroups(req:Request, res:Response){
+        try {
+            const userId = req.user!.id;
+            const groups = await grupoService.getUserGroups(userId);
+            res.status(200).json(groups);
+        } catch (error) {
+            res.status(500).json({ message: "Error fetching groups", error });
+        }
+    },
     async createGrupo(req:Request, res:Response){
         try {
             const data:GrupoCreateDTO = req.body
+            data.criador_id = req.user!.id; // Adicionar o ID do criador
             const newGroup = await grupoService.createGrupo(data)
             res.status(201).json(newGroup)
         } catch (error) {

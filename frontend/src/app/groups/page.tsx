@@ -1,10 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { HiUserGroup, HiPlus, HiXMark } from "react-icons/hi2";
 import ButtonAdd from '../components/ButtonAdd';
 import Modal from '../components/Modal';
 import HeaderDate from '../components/HeaderDate';
+
+type Group = {
+  id: string;
+  title: string;
+  subtitle: string;
+  members: string[];
+  totalMembers: number;
+  progress: number;
+  totalTasks: number;
+};
 
 // --- FORMULÁRIO DE ADICIONAR GRUPO ---
 function AddGroupForm({ onClose, onCreate }: { onClose: () => void, onCreate: (data: any) => void }) {
@@ -12,11 +22,44 @@ function AddGroupForm({ onClose, onCreate }: { onClose: () => void, onCreate: (d
   const [description, setDescription] = useState('');
   const [memberInput, setMemberInput] = useState('');
   const [members, setMembers] = useState<string[]>([]);
+  const [errorMessage, setErrorMessage] = useState('');
 
-  const handleAddMember = () => {
-    if (memberInput.trim() && !members.includes(memberInput.trim())) {
-      setMembers([...members, memberInput.trim()]);
-      setMemberInput('');
+  const handleAddMember = async () => {
+    const userToAdd = memberInput.trim();
+    
+    if (!userToAdd) {
+      setErrorMessage('Por favor, insira um nome de utilizador');
+      return;
+    }
+
+    if (members.includes(userToAdd)) {
+      setErrorMessage('Este utilizador já foi adicionado');
+      return;
+    }
+
+    try {
+      // Validar se o utilizador existe
+      const response = await fetch(`/api/v1/users/search?q=${encodeURIComponent(userToAdd)}`, {
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        const userExists = data.some((u: any) => u.nome_utilizador === userToAdd);
+
+        if (userExists) {
+          setMembers([...members, userToAdd]);
+          setMemberInput('');
+          setErrorMessage('');
+        } else {
+          setErrorMessage('Utilizador não encontrado');
+        }
+      } else {
+        setErrorMessage('Erro ao validar utilizador');
+      }
+    } catch (error) {
+      console.error('Erro ao validar utilizador:', error);
+      setErrorMessage('Erro ao validar utilizador');
     }
   };
 
@@ -62,15 +105,33 @@ function AddGroupForm({ onClose, onCreate }: { onClose: () => void, onCreate: (d
             <input
               type="text"
               value={memberInput}
-              onChange={(e) => setMemberInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleAddMember())}
-              placeholder="Email ou utilizador"
+              onChange={(e) => {
+                setMemberInput(e.target.value);
+                if (errorMessage) setErrorMessage('');
+              }}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault();
+                  handleAddMember();
+                }
+              }}
+              placeholder="Nome de utilizador"
               className="w-full p-2 rounded-lg bg-zinc-800 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-[#57F177]"
             />
-            <button type="button" onClick={handleAddMember} className="px-3 py-2 rounded-lg bg-zinc-800 text-white hover:bg-zinc-700">
+            <button 
+              type="button" 
+              onClick={handleAddMember} 
+              className="px-3 py-2 rounded-lg bg-zinc-800 text-white hover:bg-zinc-700"
+            >
               <HiPlus />
             </button>
           </div>
+
+          {/* Mensagem de erro */}
+          {errorMessage && (
+            <p className="text-red-400 text-sm mt-2">{errorMessage}</p>
+          )}
+
           {members.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-3">
               {members.map((member, idx) => (
@@ -100,10 +161,54 @@ function AddGroupForm({ onClose, onCreate }: { onClose: () => void, onCreate: (d
 // --- PÁGINA PRINCIPAL ---
 export default function GroupsPage() {
   const [showModal, setShowModal] = useState(false);
-  const [groups, setGroups] = useState([
-    { id: 1, title: 'Projeto III', subtitle: 'BlockChain', members: ['FF', 'MA'], totalMembers: 2, progress: 69, totalTasks: 50 },
-    { id: 2, title: 'SIR', subtitle: 'StudySphere', members: ['FF', 'MA', 'TS'], totalMembers: 3, progress: 35, totalTasks: 30 }
-  ]);
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Carregar grupos da base de dados
+  useEffect(() => {
+    const fetchGroups = async () => {
+      try {
+        const response = await fetch('/api/v1/groups', {
+          credentials: 'include',
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          
+          // Mapear dados do backend para o formato do frontend
+          const mappedGroups: Group[] = data.map((grupo: any) => {
+            const initials = grupo.membros.map((m: any) => 
+              m.utilizador.nome_utilizador.substring(0, 2).toUpperCase()
+            );
+            
+            const totalTasks = grupo.eventos_grupo?.length || 0;
+            const completedTasks = grupo.eventos_grupo?.filter(
+              (eg: any) => eg.evento.estado === 'concluido'
+            ).length || 0;
+            const progress = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+
+            return {
+              id: grupo.id,
+              title: grupo.nome,
+              subtitle: grupo.descricao || 'Sem descrição',
+              members: initials,
+              totalMembers: grupo.membros.length,
+              progress,
+              totalTasks,
+            };
+          });
+
+          setGroups(mappedGroups);
+        }
+      } catch (error) {
+        console.error('Erro ao carregar grupos:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchGroups();
+  }, []);
 
   const handleCreateGroup = async (data: any) => {
     try {
@@ -112,8 +217,6 @@ export default function GroupsPage() {
         descricao: data.description || '',
         membrosNomeUtilizador: data.members
       };
-
-      console.log('Criando grupo:', payload);
 
       const response = await fetch('/api/v1/groups', {
         method: 'POST',
@@ -124,19 +227,22 @@ export default function GroupsPage() {
 
       if (response.ok) {
         const createdGroup = await response.json();
-        console.log('Grupo criado:', createdGroup);
 
-        // Adicionar grupo à lista local
-        const initials = data.members.map((m: string) => m.substring(0, 2).toUpperCase());
-        const newGroup = {
+        // Mapear grupo criado
+        const initials = createdGroup.membros.map((m: any) => 
+          m.utilizador.nome_utilizador.substring(0, 2).toUpperCase()
+        );
+        
+        const newGroup: Group = {
           id: createdGroup.id,
           title: createdGroup.nome,
           subtitle: createdGroup.descricao || 'Sem descrição',
-          members: initials.length > 0 ? initials : ['EU'],
-          totalMembers: createdGroup.membros?.length || 1,
+          members: initials,
+          totalMembers: createdGroup.membros.length,
           progress: 0,
           totalTasks: 0
         };
+        
         setGroups([...groups, newGroup]);
       } else {
         const error = await response.json();
@@ -162,13 +268,29 @@ export default function GroupsPage() {
         </div>
         <div className="text-left min-w-[100px]">
           <p className="text-white font-medium text-sm mb-1">Total de Tarefas</p>
-          <p className="text-[#4CB2D8] font-medium text-3xl">80</p>
+          <p className="text-[#4CB2D8] font-medium text-3xl">
+            {groups.reduce((sum, g) => sum + g.totalTasks, 0)}
+          </p>
         </div>
       </div>
 
       {/* 3. Lista de Grupos */}
       <div className="px-6 space-y-4">
-        {groups.map((group) => (
+        {isLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <div className="text-center">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#57F177]"></div>
+              <p className="text-gray-400 mt-4">A carregar grupos...</p>
+            </div>
+          </div>
+        ) : groups.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <HiUserGroup className="text-gray-600 text-6xl mb-4" />
+            <p className="text-gray-400 text-lg font-medium mb-2">Nenhum grupo criado</p>
+            <p className="text-gray-500 text-sm">Clica no botão + para criar o teu primeiro grupo</p>
+          </div>
+        ) : (
+          groups.map((group) => (
           <div key={group.id} className="bg-[#1C3B4F]/40 backdrop-blur-sm border border-gray-700/30 rounded-3xl p-5 relative transition-all active:scale-[0.98]">
             <div className="flex justify-between items-start mb-2">
               <div>
@@ -201,7 +323,8 @@ export default function GroupsPage() {
               </div>
             </div>
           </div>
-        ))}
+        ))
+        )}
       </div>
 
       <ButtonAdd onClick={() => setShowModal(true)} />
