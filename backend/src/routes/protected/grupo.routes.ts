@@ -3,6 +3,7 @@ import grupoController from "../../controllers/grupo.controller";
 
 const router = Router();
 
+router.get("/", grupoController.getUserGroups);
 router.post("/", grupoController.createGrupo);
 router.delete("/:id/leave", grupoController.leaveGrupo);
 router.post("/members", grupoController.addMembers);
