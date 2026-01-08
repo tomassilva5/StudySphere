@@ -1,8 +1,10 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { FiCheckSquare, FiClock, FiTrash2, FiEdit2 } from 'react-icons/fi';
 import { useTasks, TaskType, TaskPriority, TaskStatus, type Task } from '@/app/providers/TaskContext';
+import { useUI } from '@/app/providers/UIContext';
 
 // 1. IMPORTAR OS COMPONENTES REUTILIZÁVEIS
 import ButtonAdd from '../components/ButtonAdd';
@@ -30,7 +32,17 @@ const typeLabels: Record<TaskType, string> = {
 };
 
 // Componente TaskItem
-function TaskItem({ task, toggleTask }: { task: Task; toggleTask: (id: string) => void }) {
+function TaskItem({ 
+  task, 
+  toggleTask, 
+  onDelete,
+  onEdit
+}: { 
+  task: Task; 
+  toggleTask: (id: string) => void;
+  onDelete: (task: Task) => void;
+  onEdit: (task: Task) => void;
+}) {
   return (
     <div
       className={`rounded-xl p-3 border border-zinc-800 transition-all ${
@@ -61,10 +73,20 @@ function TaskItem({ task, toggleTask }: { task: Task; toggleTask: (id: string) =
           </div>
         </div>
         <div className="flex gap-2">
-          <button type="button" aria-label="Editar" className="hover:text-white transition-colors">
+          <button 
+            type="button" 
+            aria-label="Editar" 
+            className="hover:text-white transition-colors"
+            onClick={() => onEdit(task)}
+          >
             <FiEdit2 className="text-zinc-400" size={16} aria-hidden="true" />
           </button>
-          <button type="button" aria-label="Excluir" className="hover:text-red-400 transition-colors">
+          <button 
+            type="button" 
+            aria-label="Excluir" 
+            className="hover:text-red-400 transition-colors"
+            onClick={() => onDelete(task)}
+          >
             <FiTrash2 className="text-red-500/80" size={16} aria-hidden="true" />
           </button>
         </div>
@@ -240,8 +262,21 @@ function AddTaskForm({
 
 // PÁGINA PRINCIPAL DE TAREFAS
 export default function TasksPage() {
-  const { tasks, addTask, toggleTask } = useTasks();
+  const router = useRouter();
+  const { tasks, addTask, toggleTask, removeTask } = useTasks();
+  const { hideBottomTabs, showBottomTabs } = useUI();
   const [showAddModal, setShowAddModal] = useState(false);
+  const [selectedFilter, setSelectedFilter] = useState<TaskType | 'Todas'>('Todas');
+  const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
+
+  // Controlar visibilidade do BottomTabs quando modal abre/fecha
+  useEffect(() => {
+    if (showAddModal || taskToDelete) {
+      hideBottomTabs();
+    } else {
+      showBottomTabs();
+    }
+  }, [showAddModal, taskToDelete, hideBottomTabs, showBottomTabs]);
 
   const handleAddTask = useCallback(async (taskData: Omit<Task, 'id' | 'completed' | 'duration'>) => {
     const start = new Date(`1970-01-01T${taskData.startTime}:00`);
@@ -258,7 +293,33 @@ export default function TasksPage() {
     await addTask(newTask);
   }, [addTask]);
 
-  const groupedTasks = tasks.reduce<Record<TaskType, Task[]>>((acc, task) => {
+  const handleDeleteTask = (task: Task) => {
+    setTaskToDelete(task);
+  };
+
+  const handleEditTask = (task: Task) => {
+    // Guardar tarefa no localStorage para edição
+    localStorage.setItem('editingTask', JSON.stringify(task));
+    router.push('/development');
+  };
+
+  const handleConfirmDelete = async () => {
+    if (taskToDelete) {
+      await removeTask(taskToDelete.id);
+      setTaskToDelete(null);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setTaskToDelete(null);
+  };
+
+  // Filtrar tarefas baseado no filtro selecionado
+  const filteredTasks = selectedFilter === 'Todas' 
+    ? tasks 
+    : tasks.filter(task => task.type === selectedFilter);
+
+  const groupedTasks = filteredTasks.reduce<Record<TaskType, Task[]>>((acc, task) => {
     if (!acc[task.type]) acc[task.type] = [];
     acc[task.type].push(task);
     return acc;
@@ -276,32 +337,66 @@ export default function TasksPage() {
 
       {/* Filtros / Tabs */}
       <div className="flex px-4 gap-2 mb-4 overflow-x-auto pb-2 scrollbar-hide" role="tablist">
-        {Object.entries(typeColors).map(([key, color]) => (
-          <div
-            key={key}
-            className={`px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider text-white shadow-sm transition-all ${color} whitespace-nowrap`}
-            role="tab"
-            aria-selected={groupedTasks[key as TaskType]?.length > 0}
-            style={{ border: '1px solid rgba(255, 255, 255, 0.15)' }}
-          >
-            {typeLabels[key as TaskType]}
-          </div>
-        ))}
+        {/* Botão "Todas" */}
+        <button
+          onClick={() => setSelectedFilter('Todas')}
+          className={`px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider shadow-sm transition-all whitespace-nowrap ${
+            selectedFilter === 'Todas' 
+              ? 'bg-gradient-to-r from-[#57F177] to-[#4CB2D8] text-[#06141F]' 
+              : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+          }`}
+          role="tab"
+          aria-selected={selectedFilter === 'Todas'}
+        >
+          Todas ({tasks.length})
+        </button>
+        
+        {/* Botões de filtro por tipo */}
+        {Object.entries(typeColors).map(([key, color]) => {
+          const taskCount = tasks.filter(t => t.type === key).length;
+          const isSelected = selectedFilter === key;
+          
+          return (
+            <button
+              key={key}
+              onClick={() => setSelectedFilter(key as TaskType)}
+              className={`px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider shadow-sm transition-all whitespace-nowrap ${
+                isSelected 
+                  ? `${color} text-white ring-2 ring-white/50` 
+                  : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+              }`}
+              role="tab"
+              aria-selected={isSelected}
+            >
+              {typeLabels[key as TaskType]} ({taskCount})
+            </button>
+          );
+        })}
       </div>
 
       {/* Lista de Tarefas */}
       <div className="flex-1 px-4 space-y-3 mb-16">
-        {tasks.length > 0 ? (
+        {filteredTasks.length > 0 ? (
           Object.entries(groupedTasks).map(([type, tasks]) => (
             <div key={type} className="space-y-3">
               {tasks.map(task => (
-                <TaskItem key={task.id} task={task} toggleTask={toggleTask} />
+                <TaskItem 
+                  key={task.id} 
+                  task={task} 
+                  toggleTask={toggleTask}
+                  onDelete={handleDeleteTask}
+                  onEdit={handleEditTask}
+                />
               ))}
             </div>
           ))
         ) : (
           <div className="flex flex-col items-center justify-center text-zinc-500 py-16">
-            <p className="text-sm">Nenhuma tarefa registada.</p>
+            <p className="text-sm">
+              {selectedFilter === 'Todas' 
+                ? 'Nenhuma tarefa registada.' 
+                : `Nenhuma tarefa de ${typeLabels[selectedFilter as TaskType]}.`}
+            </p>
           </div>
         )}
       </div>
@@ -313,6 +408,40 @@ export default function TasksPage() {
       {showAddModal && (
         <Modal onClose={() => setShowAddModal(false)}>
           <AddTaskForm onClose={() => setShowAddModal(false)} onAdd={handleAddTask} />
+        </Modal>
+      )}
+
+      {/* Modal de Confirmação de Exclusão */}
+      {taskToDelete && (
+        <Modal onClose={handleCancelDelete}>
+          <div className="p-8 text-center">
+            <div className="mb-6 flex justify-center">
+              <div className="w-20 h-20 rounded-full bg-red-900/30 flex items-center justify-center">
+                <FiTrash2 className="w-10 h-10 text-red-500" />
+              </div>
+            </div>
+            <h3 className="text-2xl font-bold text-white mb-3">
+              Apagar Tarefa?
+            </h3>
+            <p className="text-zinc-400 mb-8">
+              Tem a certeza que deseja apagar<br />
+              &quot;{taskToDelete.title}&quot;?
+            </p>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={handleConfirmDelete}
+                className="w-full px-6 py-4 bg-red-500 hover:bg-red-600 text-white rounded-xl font-semibold transition-colors"
+              >
+                Sim, apagar tarefa
+              </button>
+              <button
+                onClick={handleCancelDelete}
+                className="w-full px-6 py-4 border-2 border-cyan-500 text-cyan-500 hover:bg-cyan-500/10 rounded-xl font-bold uppercase tracking-wider transition-colors"
+              >
+                CANCELAR
+              </button>
+            </div>
+          </div>
         </Modal>
       )}
 

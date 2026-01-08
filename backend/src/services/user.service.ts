@@ -30,5 +30,8 @@ export default {
     },
     getById(id:string){
         return userDb.getById(id)
+    },
+    searchUsers(query: string){
+        return userDb.searchUsers(query)
     }
 }

@@ -33,6 +33,22 @@ export default {
         }
     },
 
+    async searchUsers(req: Request, res: Response) {
+        try {
+            const { q } = req.query;
+
+            if (!q || typeof q !== 'string') {
+                return res.json([]);
+            }
+
+            const users = await userService.searchUsers(q);
+            res.json(users);
+        } catch (error) {
+            console.error('Error searching users:', error);
+            res.status(500).json({ message: "Error searching users" });
+        }
+    },
+
     async create(req: Request, res: Response) {
         try {
             const data: UserCreateDTO = req.body;

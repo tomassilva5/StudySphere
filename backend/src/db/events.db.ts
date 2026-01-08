@@ -83,5 +83,23 @@ export default{
             where: { id },
             data,
         })
+    },
+    async deleteEvent(id:string, userId:string){
+        // Verificar se o evento pertence ao utilizador
+        const evento = await prisma.evento.findUnique({
+            where: { id },
+        });
+        
+        if (!evento) {
+            throw new Error('Event not found');
+        }
+        
+        if (evento.utilizador_id !== userId) {
+            throw new Error('Unauthorized');
+        }
+        
+        return prisma.evento.delete({
+            where: { id },
+        });
     }
 }
