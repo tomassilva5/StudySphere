@@ -16,7 +16,6 @@ router.use('/auth', authRoutes);
 router.use('/auth/google', googleAuthRoutes);
 
 router.get("/usersnames", userController.getUsernames);
-router.get("/users/:nome_utilizador", userController.getUser);
 
 router.use(authController);
 

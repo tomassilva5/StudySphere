@@ -24,6 +24,7 @@ model Utilizador {
   grupos                GrupoUtilizador[]
   historico             Historico[]
   refresh_tokens        RefreshToken[]
+  mensagens_grupo       MensagemGrupo[]
 }
 
 model RefreshToken {
@@ -69,6 +70,7 @@ model Grupo {
   membros       GrupoUtilizador[]
   criado_em     DateTime?         @default(now())
   eventos_grupo EventoGrupo[]
+  mensagens     MensagemGrupo[]
 
   @@index([nome])
 }
@@ -93,6 +95,19 @@ model GrupoUtilizador {
   criado_em     DateTime   @default(now())
 
   @@unique([grupo_id, utilizador_id])
+}
+
+model MensagemGrupo {
+  id            String     @id @default(auto()) @map("_id") @db.ObjectId
+  grupo         Grupo      @relation(fields: [grupo_id], references: [id])
+  grupo_id      String     @db.ObjectId
+  autor         Utilizador @relation(fields: [autor_id], references: [id])
+  autor_id      String     @db.ObjectId
+  mensagem      String
+  criado_em     DateTime   @default(now())
+
+  @@index([grupo_id, criado_em])
+  @@index([autor_id])
 }
 
 model Conversa {

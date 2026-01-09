@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { HiUserGroup, HiPlus, HiXMark } from "react-icons/hi2";
 import ButtonAdd from '../components/ButtonAdd';
 import Modal from '../components/Modal';
@@ -39,22 +40,29 @@ function AddGroupForm({ onClose, onCreate }: { onClose: () => void, onCreate: (d
 
     try {
       // Validar se o utilizador existe
+      console.log('[VALIDATION] Searching for user:', userToAdd);
       const response = await fetch(`/api/v1/users/search?q=${encodeURIComponent(userToAdd)}`, {
         credentials: 'include',
       });
 
+      console.log('[VALIDATION] Response status:', response.status);
+
       if (response.ok) {
         const data = await response.json();
+        console.log('[VALIDATION] Search results:', data);
         const userExists = data.some((u: any) => u.nome_utilizador === userToAdd);
 
         if (userExists) {
+          console.log('[VALIDATION] User found, adding to members');
           setMembers([...members, userToAdd]);
           setMemberInput('');
           setErrorMessage('');
         } else {
+          console.log('[VALIDATION] User not found in results');
           setErrorMessage('Utilizador não encontrado');
         }
       } else {
+        console.error('[VALIDATION] Response not OK:', response.status, response.statusText);
         setErrorMessage('Erro ao validar utilizador');
       }
     } catch (error) {
@@ -160,6 +168,7 @@ function AddGroupForm({ onClose, onCreate }: { onClose: () => void, onCreate: (d
 
 // --- PÁGINA PRINCIPAL ---
 export default function GroupsPage() {
+  const router = useRouter();
   const [showModal, setShowModal] = useState(false);
   const [groups, setGroups] = useState<Group[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -291,7 +300,11 @@ export default function GroupsPage() {
           </div>
         ) : (
           groups.map((group) => (
-          <div key={group.id} className="bg-[#1C3B4F]/40 backdrop-blur-sm border border-gray-700/30 rounded-3xl p-5 relative transition-all active:scale-[0.98]">
+          <div 
+            key={group.id} 
+            onClick={() => router.push(`/groups/${group.id}`)}
+            className="bg-[#1C3B4F]/40 backdrop-blur-sm border border-gray-700/30 rounded-3xl p-5 relative transition-all active:scale-[0.98] cursor-pointer"
+          >
             <div className="flex justify-between items-start mb-2">
               <div>
                 <h3 className="text-white font-medium text-lg tracking-wide">{group.title}</h3>

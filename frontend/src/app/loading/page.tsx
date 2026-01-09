@@ -39,8 +39,8 @@ export default function Loading() {
           style={{ objectFit: 'contain', marginBottom: '30px' }}
         />
         <div className="flex flex-col items-center gap-4">
-          <div className="w-12 h-12 border-4 border-zinc-300 border-t-[#57F177] dark:border-zinc-700 rounded-full animate-spin"></div>
-          <p className="text-zinc-400 text-sm">A carregar...</p>
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-[#57F177]"></div>
+          <p className="text-gray-400 text-sm">A carregar...</p>
         </div>
       </div>
     </div>

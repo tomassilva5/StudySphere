@@ -4,6 +4,22 @@ import { Request, Response } from "express";
 import { Prisma } from "@prisma/client";
 
 export default {
+    async getCurrentUser(req: Request, res: Response) {
+        try {
+            const userId = req.user!.id;
+            const user = await userService.getById(userId);
+            
+            if (!user) {
+                return res.status(404).json({ message: "User not found" });
+            }
+            
+            res.json(user);
+        } catch (error) {
+            console.error('Error getting current user:', error);
+            res.status(500).json({ message: "Error getting current user" });
+        }
+    },
+
     async getAll(req: Request, res: Response) {
         try {
             const users = await userService.getAll();
@@ -36,12 +52,15 @@ export default {
     async searchUsers(req: Request, res: Response) {
         try {
             const { q } = req.query;
+            console.log('[SEARCH] Query:', q);
 
             if (!q || typeof q !== 'string') {
+                console.log('[SEARCH] Empty or invalid query, returning empty array');
                 return res.json([]);
             }
 
             const users = await userService.searchUsers(q);
+            console.log('[SEARCH] Found', users.length, 'users for query:', q);
             res.json(users);
         } catch (error) {
             console.error('Error searching users:', error);
@@ -100,10 +119,12 @@ export default {
     async getById(req: Request, res: Response) {
         try {
             const { id } = req.params;
+            console.log('[GET BY ID] Called with id:', id);
             const user = await userService.getById(id);
             if (user) {
                 res.json(user);
             } else {
+                console.log('[GET BY ID] User not found with id:', id);
                 res.status(404).json({ message: "User not found" });
             }
         } catch (error) {

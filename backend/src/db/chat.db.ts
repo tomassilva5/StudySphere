@@ -2,6 +2,77 @@ import {prisma} from "../lib/prisma";
 import { Conversa, Mensagem } from "../types/chat.dto";
 
 export default {
+    async getGroupMessages(groupId: string, userId: string) {
+        // Verificar se o utilizador é membro do grupo
+        const isMember = await prisma.grupoUtilizador.findFirst({
+            where: {
+                grupo_id: groupId,
+                utilizador_id: userId
+            }
+        });
+
+        if (!isMember) {
+            throw new Error('User is not a member of this group');
+        }
+
+        return prisma.mensagemGrupo.findMany({
+            where: {
+                grupo_id: groupId
+            },
+            select: {
+                id: true,
+                autor_id: true,
+                mensagem: true,
+                criado_em: true,
+                autor: {
+                    select: {
+                        id: true,
+                        nome_utilizador: true,
+                        nome_completo: true,
+                    }
+                }
+            },
+            orderBy: {
+                criado_em: 'asc'
+            }
+        });
+    },
+
+    async sendGroupMessage(groupId: string, userId: string, mensagem: string) {
+        // Verificar se o utilizador é membro do grupo
+        const isMember = await prisma.grupoUtilizador.findFirst({
+            where: {
+                grupo_id: groupId,
+                utilizador_id: userId
+            }
+        });
+
+        if (!isMember) {
+            throw new Error('User is not a member of this group');
+        }
+
+        return prisma.mensagemGrupo.create({
+            data: {
+                grupo_id: groupId,
+                autor_id: userId,
+                mensagem: mensagem
+            },
+            select: {
+                id: true,
+                autor_id: true,
+                mensagem: true,
+                criado_em: true,
+                autor: {
+                    select: {
+                        id: true,
+                        nome_utilizador: true,
+                        nome_completo: true,
+                    }
+                }
+            }
+        });
+    },
+
     createChat(data:Conversa){
        return prisma.conversa.create({
            data: {
