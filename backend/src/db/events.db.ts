@@ -101,5 +101,39 @@ export default{
         return prisma.evento.delete({
             where: { id },
         });
+    },
+    async addEventToGroup(eventoId: string, grupoId: string, userId: string) {
+        // Verificar se o evento pertence ao utilizador
+        const evento = await prisma.evento.findUnique({
+            where: { id: eventoId },
+        });
+        
+        if (!evento) {
+            throw new Error('Event not found');
+        }
+        
+        if (evento.utilizador_id !== userId) {
+            throw new Error('Unauthorized');
+        }
+        
+        // Verificar se o utilizador é membro do grupo
+        const isMember = await prisma.grupoUtilizador.findFirst({
+            where: {
+                grupo_id: grupoId,
+                utilizador_id: userId,
+            },
+        });
+        
+        if (!isMember) {
+            throw new Error('User is not a member of this group');
+        }
+        
+        // Adicionar evento ao grupo
+        return prisma.eventoGrupo.create({
+            data: {
+                evento_id: eventoId,
+                grupo_id: grupoId,
+            },
+        });
     }
 }

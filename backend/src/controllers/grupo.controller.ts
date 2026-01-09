@@ -12,6 +12,21 @@ export default {
             res.status(500).json({ message: "Error fetching groups", error });
         }
     },
+    async getGroupById(req:Request, res:Response){
+        try {
+            const userId = req.user!.id;
+            const groupId = req.params.id;
+            const group = await grupoService.getGroupById(groupId, userId);
+            
+            if (!group) {
+                return res.status(404).json({ message: "Group not found" });
+            }
+            
+            res.status(200).json(group);
+        } catch (error) {
+            res.status(500).json({ message: "Error fetching group", error });
+        }
+    },
     async createGrupo(req:Request, res:Response){
         try {
             const data:GrupoCreateDTO = req.body

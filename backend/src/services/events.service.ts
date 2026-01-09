@@ -15,6 +15,8 @@ export default{
         return eventsDb.modifyEvents(id, input)
     },
     deleteEvent(id:string, userId:string){
-        return eventsDb.deleteEvent(id, userId)
+        return eventsDb.deleteEvent(id, userId)    },
+    async addEventToGroup(eventoId: string, grupoId: string, userId: string){
+        return eventsDb.addEventToGroup(eventoId, grupoId, userId);
     }
 }

@@ -37,6 +37,45 @@ export default{
             }
         })
     },
+    async getGroupById(groupId:string, userId:string){
+        return prisma.grupo.findFirst({
+            where:{
+                id: groupId,
+                membros:{
+                    some:{
+                        utilizador_id: userId
+                    }
+                }
+            },
+            include:{
+                membros: {
+                    select: {
+                        utilizador: {
+                            select: {
+                                id: true,
+                                nome_utilizador: true,
+                                nome_completo: true,
+                            },
+                        },
+                    },
+                },
+                eventos_grupo: {
+                    include: {
+                        evento: {
+                            include: {
+                                proprietario: {
+                                    select: {
+                                        id: true,
+                                        nome_utilizador: true,
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        })
+    },
     async createGrupo(dto:GrupoCreateDTO){
         // Buscar o nome do utilizador criador se fornecido
         let criadorNomeUtilizador: string | null = null;
