@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { HiCheckCircle, HiChevronLeft, HiUserGroup, HiPaperAirplane, HiPlus, HiXMark } from "react-icons/hi2";
+import { FiCheckSquare, FiClock, FiTrash2, FiEdit2 } from 'react-icons/fi';
 import HeaderDate from '../../components/HeaderDate';
 import Modal from '../../components/Modal';
 import ButtonAdd from '../../components/ButtonAdd';
@@ -54,6 +55,7 @@ export default function GroupDetailPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [currentUserId, setCurrentUserId] = useState<string>('');
   const [showTaskModal, setShowTaskModal] = useState(false);
+  const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
   const [isSocketConnected, setIsSocketConnected] = useState(false);
   
   const socketRef = useRef<Socket | null>(null);
@@ -243,6 +245,32 @@ export default function GroupDetailPage() {
     }
   };
 
+  const handleDeleteTask = async (task: Task) => {
+    setTaskToDelete(task);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!taskToDelete) return;
+    
+    try {
+      const response = await fetch(`/api/v1/events/${taskToDelete.id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+
+      if (response.ok) {
+        setTasks(tasks.filter(t => t.id !== taskToDelete.id));
+        setTaskToDelete(null);
+      }
+    } catch (error) {
+      console.error('Erro ao eliminar tarefa:', error);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setTaskToDelete(null);
+  };
+
   const handleCreateTask = async (taskData: any) => {
     try {
       const payload = {
@@ -389,28 +417,36 @@ export default function GroupDetailPage() {
                     }`}
                   >
                     <div className="flex items-center gap-3">
-                      <button
+                      <FiCheckSquare
                         onClick={() => handleToggleTask(task.id)}
-                        className="transition-colors"
-                      >
-                        <HiCheckCircle
-                          className={`text-xl ${
-                            task.concluida ? 'text-green-400' : 'text-zinc-500'
-                          }`}
-                        />
-                      </button>
+                        className={`text-xl cursor-pointer transition-colors ${
+                          task.concluida ? 'text-green-400' : 'text-zinc-500'
+                        }`}
+                        aria-label={task.concluida ? 'Desmarcar' : 'Marcar'}
+                        role="button"
+                      />
                       <div className="flex-1">
                         <h3 className={`font-medium ${task.concluida ? 'text-zinc-400 line-through' : 'text-white'}`}>
                           {task.titulo}
                         </h3>
                         <div className="flex items-center gap-2 mt-1">
-                          <span className={`text-xs ${task.concluida ? 'text-zinc-500' : 'text-zinc-400'}`}>
+                          <span className={`text-xs flex items-center gap-1 ${task.concluida ? 'text-zinc-500' : 'text-zinc-400'}`}>
                             {task.responsavel}
                           </span>
                           <span className={`text-xs ${task.concluida ? 'text-zinc-500' : 'text-zinc-400'}`}>
                             • {task.data}
                           </span>
                         </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button 
+                          type="button" 
+                          aria-label="Eliminar" 
+                          className="hover:text-red-400 transition-colors"
+                          onClick={() => handleDeleteTask(task)}
+                        >
+                          <FiTrash2 className="text-red-500/80" size={16} aria-hidden="true" />
+                        </button>
                       </div>
                     </div>
                   </div>
@@ -439,20 +475,19 @@ export default function GroupDetailPage() {
               ) : (
                 messages.map((msg) => {
                   const isCurrentUser = msg.autor_id === currentUserId;
-                  console.log('Message:', msg.id, '| Author ID:', msg.autor_id, '| Current User ID:', currentUserId, '| Is Current User?', isCurrentUser);
                   return (
                     <div
                       key={msg.id}
                       className={`flex ${isCurrentUser ? 'justify-end' : 'justify-start'}`}
                     >
                       {!isCurrentUser && (
-                        <div className="w-10 h-10 rounded-full bg-[#0B161E] border border-gray-600 flex items-center justify-center text-xs text-white font-medium mr-3 flex-shrink-0">
+                        <div className="w-10 h-10 rounded-full bg-[#0B161E] border border-gray-600 flex items-center justify-center text-xs text-white font-medium mr-2 flex-shrink-0">
                           {msg.autor.nome_utilizador.substring(0, 2).toUpperCase()}
                         </div>
                       )}
-                      <div className={`max-w-[70%] ${isCurrentUser ? 'flex items-end gap-3' : ''}`}>
+                      <div className={`max-w-[70%] ${isCurrentUser ? 'flex items-end gap-3 flex-row-reverse' : ''}`}>
                         {isCurrentUser && (
-                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#57F177] to-[#4CB2D8] flex items-center justify-center text-xs text-[#06141F] font-bold flex-shrink-0">
+                          <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#57F177] to-[#4CB2D8] flex items-center justify-center text-xs text-[#06141F] font-bold flex-shrink-0 ml-2">
                             {msg.autor.nome_utilizador.substring(0, 2).toUpperCase()}
                           </div>
                         )}
@@ -515,6 +550,40 @@ export default function GroupDetailPage() {
       {showTaskModal && (
         <Modal onClose={() => setShowTaskModal(false)}>
           <AddTaskForm onClose={() => setShowTaskModal(false)} onCreate={handleCreateTask} />
+        </Modal>
+      )}
+
+      {/* Modal de Confirmação de Exclusão */}
+      {taskToDelete && (
+        <Modal onClose={handleCancelDelete}>
+          <div className="p-8 text-center">
+            <div className="mb-6 flex justify-center">
+              <div className="w-20 h-20 rounded-full bg-red-900/30 flex items-center justify-center">
+                <FiTrash2 className="w-10 h-10 text-red-500" />
+              </div>
+            </div>
+            <h3 className="text-2xl font-bold text-white mb-3">
+              Apagar Tarefa?
+            </h3>
+            <p className="text-zinc-400 mb-8">
+              Tem a certeza que deseja apagar<br />
+              &quot;{taskToDelete.titulo}&quot;?
+            </p>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={handleConfirmDelete}
+                className="w-full px-6 py-4 bg-red-500 hover:bg-red-600 text-white rounded-xl font-semibold transition-colors"
+              >
+                Sim, apagar tarefa
+              </button>
+              <button
+                onClick={handleCancelDelete}
+                className="w-full px-6 py-4 border-2 border-cyan-500 text-cyan-500 hover:bg-cyan-500/10 rounded-xl font-bold uppercase tracking-wider transition-colors"
+              >
+                CANCELAR
+              </button>
+            </div>
+          </div>
         </Modal>
       )}
     </div>
@@ -622,7 +691,7 @@ function AddTaskForm({ onClose, onCreate }: { onClose: () => void, onCreate: (da
                 updateEndTime(e.target.value);
               }}
               className="w-full p-2.5 rounded-lg bg-zinc-800 text-white border border-zinc-700 outline-none"
-              style={{ colorScheme: 'dark' }}
+              style={{ colorScheme: 'light' }}
             />
           </div>
           <div className="flex-1">
@@ -632,7 +701,7 @@ function AddTaskForm({ onClose, onCreate }: { onClose: () => void, onCreate: (da
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
               className="w-full p-2.5 rounded-lg bg-zinc-800 text-white border border-zinc-700 outline-none"
-              style={{ colorScheme: 'dark' }}
+              style={{ colorScheme: 'light' }}
             />
           </div>
         </div>
