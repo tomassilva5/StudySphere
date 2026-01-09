@@ -5,12 +5,10 @@ import {Conversa, Mensagem} from "../types/chat.dto";
 export default{
     async getGroupMessages(req: Request, res: Response) {
         try {
-            console.log('[GET] getGroupMessages called - Method:', req.method, 'GroupId:', req.params.id);
             const groupId = req.params.id;
             const userId = req.user!.id;
             
             const messages = await chatService.getGroupMessages(groupId, userId);
-            console.log('[GET] Returning', messages.length, 'messages with status 200');
             res.status(200).json(messages);
         } catch (error) {
             console.error('Error fetching messages:', error);
@@ -20,7 +18,6 @@ export default{
 
     async sendMessage(req: Request, res: Response) {
         try {
-            console.log('[POST] sendMessage called - Method:', req.method, 'GroupId:', req.params.id);
             const groupId = req.params.id;
             const userId = req.user!.id;
             const { mensagem } = req.body;
@@ -30,7 +27,6 @@ export default{
             }
 
             const newMessage = await chatService.sendGroupMessage(groupId, userId, mensagem);
-            console.log('[POST] Message sent, returning status 201');
             res.status(201).json(newMessage);
         } catch (error) {
             console.error('Error sending message:', error);
