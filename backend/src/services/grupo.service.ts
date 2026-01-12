@@ -5,6 +5,9 @@ export default{
     getUserGroups(userId:string){
         return grupoDb.getUserGroups(userId)
     },
+    getGroupById(groupId:string, userId:string){
+        return grupoDb.getGroupById(groupId, userId)
+    },
     createGrupo(dto:GrupoCreateDTO){
         return grupoDb.createGrupo(dto)
     },

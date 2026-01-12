@@ -225,7 +225,7 @@ function AddTaskForm({
                 updateEndTime(e.target.value);
               }}
               className="w-full p-2.5 rounded-lg bg-zinc-800 text-white border border-zinc-700 outline-none"
-              style={{ colorScheme: 'dark' }}
+              style={{ colorScheme: 'light ' }}
             />
           </div>
           <div className="flex-1">
@@ -235,7 +235,7 @@ function AddTaskForm({
               value={endTime}
               onChange={(e) => setEndTime(e.target.value)}
               className="w-full p-2.5 rounded-lg bg-zinc-800 text-white border border-zinc-700 outline-none"
-              style={{ colorScheme: 'dark' }}
+              style={{ colorScheme: 'light'}}
             />
           </div>
         </div>

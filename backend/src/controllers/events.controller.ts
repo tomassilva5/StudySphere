@@ -51,5 +51,27 @@ export default {
         } catch (error) {
             res.status(500).json({ message: "Error deleting event", error });
         }
+    },
+    async addEventToGroup(req:Request, res:Response){
+        try {
+            const { id } = req.params;
+            const { grupo_id } = req.body;
+            const userId = req.user!.id;
+            
+            if (!grupo_id) {
+                return res.status(400).json({ message: "grupo_id is required" });
+            }
+            
+            const result = await eventsService.addEventToGroup(id, grupo_id, userId);
+            res.status(201).json(result);
+        } catch (error: any) {
+            if (error.message === 'Event not found') {
+                return res.status(404).json({ message: error.message });
+            }
+            if (error.message === 'Unauthorized' || error.message === 'User is not a member of this group') {
+                return res.status(403).json({ message: error.message });
+            }
+            res.status(500).json({ message: "Error adding event to group", error });
+        }
     }
 }

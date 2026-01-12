@@ -4,6 +4,22 @@ import { Request, Response } from "express";
 import { Prisma } from "@prisma/client";
 
 export default {
+    async getCurrentUser(req: Request, res: Response) {
+        try {
+            const userId = req.user!.id;
+            const user = await userService.getById(userId);
+            
+            if (!user) {
+                return res.status(404).json({ message: "User not found" });
+            }
+            
+            res.json(user);
+        } catch (error) {
+            console.error('Error getting current user:', error);
+            res.status(500).json({ message: "Error getting current user" });
+        }
+    },
+
     async getAll(req: Request, res: Response) {
         try {
             const users = await userService.getAll();
