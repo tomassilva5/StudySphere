@@ -18,7 +18,6 @@ type NotificationContextType = {
   unreadCount: number;
   addNotification: (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void;
   markAsRead: (id: string) => void;
-  markAllAsRead: () => void;
   deleteNotification: (id: string) => void;
   clearAll: () => void;
 };
@@ -33,10 +32,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     const stored = localStorage.getItem('notifications');
     if (stored) {
       const parsed = JSON.parse(stored);
-      setNotifications(parsed.map((n: any) => ({
-        ...n,
-        timestamp: new Date(n.timestamp),
-      })));
+      setNotifications(parsed.map((n: any) => ({ ...n, timestamp: new Date(n.timestamp) })));
     }
   }, []);
 
@@ -48,10 +44,8 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     const checkTaskReminders = () => {
       const settingsStr = localStorage.getItem('notificationSettings');
       if (!settingsStr) return;
-
       const notifSettings = JSON.parse(settingsStr);
       
-      // Se "Pause All" estiver ativo ou "Reminders" desativado, não processa nada
       if (notifSettings.pauseAll || !notifSettings.taskReminders) return;
 
       const now = new Date();
@@ -60,37 +54,37 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         if (task.completed) return;
 
         const taskStart = new Date(`${task.date}T${task.startTime}`);
-        const diffMinutes = Math.floor((taskStart.getTime() - now.getTime()) / (1000 * 60));
+        const diffMinutes = (taskStart.getTime() - now.getTime()) / (1000 * 60);
 
-        const alreadyNotified = notifications.some(n => n.taskId === task.id && !n.read);
+        const alreadyNotified = notifications.some(n => n.taskId === task.id);
         if (alreadyNotified) return;
 
         let shouldNotify = false;
-        let minutesBefore = 0;
+        let mins = 0;
 
-        if (notifSettings.taskBefore15min && diffMinutes === 15) {
+        if (notifSettings.taskBefore15min && diffMinutes <= 15 && diffMinutes > 14) {
           shouldNotify = true;
-          minutesBefore = 15;
-        } else if (notifSettings.taskBefore30min && diffMinutes === 30) {
+          mins = 15;
+        } else if (notifSettings.taskBefore30min && diffMinutes <= 30 && diffMinutes > 29) {
           shouldNotify = true;
-          minutesBefore = 30;
-        } else if (notifSettings.taskBefore1hour && diffMinutes === 60) {
+          mins = 30;
+        } else if (notifSettings.taskBefore1hour && diffMinutes <= 60 && diffMinutes > 59) {
           shouldNotify = true;
-          minutesBefore = 60;
+          mins = 60;
         }
 
         if (shouldNotify) {
           addNotification({
             title: `Lembrete: ${task.title}`,
-            message: `Começa em ${minutesBefore} minutos`,
+            message: `Começa em ${mins} minutos`,
             type: 'task',
             taskId: task.id,
           });
 
           if ('Notification' in window && Notification.permission === 'granted') {
-            new Notification(`Lembrete: ${task.title}`, {
-              body: `Começa em ${minutesBefore} minutos`,
-              icon: '/Logo/Logo.jpg',
+            new Notification(`Estudo: ${task.title}`, {
+              body: `Faltam ${mins} minutos!`,
+              icon: '/Logo/Logo.jpg'
             });
           }
         }
@@ -115,10 +109,6 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     setNotifications(prev => prev.map(n => (n.id === id ? { ...n, read: true } : n)));
   }, []);
 
-  const markAllAsRead = useCallback(() => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
-  }, []);
-
   const deleteNotification = useCallback((id: string) => {
     setNotifications(prev => prev.filter(n => n.id !== id));
   }, []);
@@ -129,17 +119,14 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   }, []);
 
   return (
-    <NotificationContext.Provider
-      value={{
-        notifications,
-        unreadCount: notifications.filter(n => !n.read).length,
-        addNotification,
-        markAsRead,
-        markAllAsRead,
-        deleteNotification,
-        clearAll,
-      }}
-    >
+    <NotificationContext.Provider value={{ 
+      notifications, 
+      unreadCount: notifications.filter(n => !n.read).length, 
+      addNotification, 
+      markAsRead, 
+      deleteNotification, 
+      clearAll 
+    }}>
       {children}
     </NotificationContext.Provider>
   );

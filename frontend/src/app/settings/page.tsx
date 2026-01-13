@@ -201,7 +201,6 @@ export default function Settings() {
         </Modal>
       )}
 
-      {/* MODAL DE LOGOUT */}
       {isLogoutModalOpen && (
         <Modal onClose={() => setIsLogoutModalOpen(false)}>
           <div className="text-center">

@@ -411,34 +411,28 @@ export default function TasksPage() {
         </Modal>
       )}
 
-      {/* Modal de Confirmação de Exclusão */}
+      {/* Modal de Confirmação de Exclusão (usando mesmo estilo do modal de Terminar Sessão) */}
       {taskToDelete && (
         <Modal onClose={handleCancelDelete}>
-          <div className="p-8 text-center">
-            <div className="mb-6 flex justify-center">
-              <div className="w-20 h-20 rounded-full bg-red-900/30 flex items-center justify-center">
-                <FiTrash2 className="w-10 h-10 text-red-500" />
-              </div>
+          <div className="text-center">
+            <div className="bg-red-500/20 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <FiTrash2 className="text-red-500" size={32} />
             </div>
-            <h3 className="text-2xl font-bold text-white mb-3">
-              Apagar Tarefa?
-            </h3>
-            <p className="text-zinc-400 mb-8">
-              Tem a certeza que deseja apagar<br />
-              &quot;{taskToDelete.title}&quot;?
-            </p>
+            <h3 className="text-white text-xl font-bold mb-2">Apagar Tarefa?</h3>
+            <p className="text-gray-400 mb-8 text-sm px-2">Tem a certeza que deseja apagar "{taskToDelete.title}"?</p>
             <div className="flex flex-col gap-3">
               <button
                 onClick={handleConfirmDelete}
-                className="w-full px-6 py-4 bg-red-500 hover:bg-red-600 text-white rounded-xl font-semibold transition-colors"
+                className="w-full rounded-xl py-3.5 text-base font-bold text-white shadow-lg bg-red-500 hover:bg-red-600 transition-all"
               >
                 Sim, apagar tarefa
               </button>
               <button
+                type="button"
                 onClick={handleCancelDelete}
-                className="w-full px-6 py-4 border-2 border-cyan-500 text-cyan-500 hover:bg-cyan-500/10 rounded-xl font-bold uppercase tracking-wider transition-colors"
+                className="w-full rounded-xl border-2 border-gray-600 py-3 text-gray-300 font-bold uppercase tracking-wide hover:bg-white/5 transition-all"
               >
-                CANCELAR
+                Cancelar
               </button>
             </div>
           </div>

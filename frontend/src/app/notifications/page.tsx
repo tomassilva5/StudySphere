@@ -144,11 +144,11 @@ export default function NotificationsPage() {
           <div className="space-y-6">
             {/* Lembretes de Tarefas */}
             <div>
-              <h3 className="text-gray-400 text-[10px] font-bold mb-2 px-2 uppercase tracking-[0.1em]">Lembretes de fim de Tarefas</h3>
+              <h3 className="text-gray-400 text-[10px] font-bold mb-2 px-2 uppercase tracking-[0.1em]">Lembretes de início de Tarefas</h3>
               <div className="bg-[#1C3B4F]/30 border border-gray-700/50 rounded-2xl overflow-hidden">
                 <ToggleItem
                   label="Ativar Lembretes"
-                  description="Notificações antes do fim das tarefas"
+                  description="Notificações antes do início das tarefas"
                   enabled={settings.taskReminders}
                   onChange={() => handleToggle('taskReminders')}
                   isParentPaused={settings.pauseAll}
