@@ -10,3 +10,8 @@ export interface UserLogin {
     palavra_passe:string;
     email?:string;
 }
+export interface UserUpdate {
+    email?:string;
+    palavra_passe:string;
+
+}

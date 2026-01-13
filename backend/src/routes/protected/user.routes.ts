@@ -8,5 +8,6 @@ router.get("/me", userController.getCurrentUser)
 router.get("/", userController.getAll)
 router.get("/:nome_utilizador", userController.getUser)
 router.get("/:id", userController.getById)
+router.post("/edit", userController.editUser)
 
 export default router;

@@ -1,3 +1,4 @@
+import e from "express";
 import userDb from "../db/user.db";
 import { UserCreateDTO, UserLogin } from "../types/user.dto";
 export default {
@@ -33,5 +34,9 @@ export default {
     },
     searchUsers(query: string){
         return userDb.searchUsers(query)
+    },
+    editUser(data:UserCreateDTO){
+        return userDb.edituser(data)
     }
+
 }
