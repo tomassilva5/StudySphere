@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/app/providers/AuthContext';
 import { useUI } from '@/app/providers/UIContext';
-import { HiOutlineHome, HiOutlineCheckCircle, HiBars3 } from 'react-icons/hi2';
+import { HiOutlineHome, HiCheckCircle, HiBars3 } from 'react-icons/hi2';
 import { MdGroups } from "react-icons/md";
 
 export default function BottomTabs() {
@@ -11,7 +11,7 @@ export default function BottomTabs() {
   const { isAuthenticated } = useAuth();
   const { isBottomTabsVisible } = useUI();
 
-  if (!isAuthenticated || pathname === '/login' || pathname === '/register' || pathname === '/loading' || pathname === '/calendar' || pathname === '/intro') {
+  if (!isAuthenticated || pathname === '/login' || pathname === '/register' || pathname === '/loading' || pathname === '/calendar' || pathname === '/intro' || pathname === '/notifications') {
     return null;
   }
 
@@ -21,7 +21,7 @@ export default function BottomTabs() {
 
   const tabs = [
     { name: 'Home', href: '/dashboard', Icon: HiOutlineHome },
-    { name: 'Tarefas', href: '/tasks', Icon: HiOutlineCheckCircle },
+    { name: 'Tarefas', href: '/tasks', Icon: HiCheckCircle }, 
     { name: 'Grupos', href: '/groups', Icon: MdGroups },
     { name: 'Configurações', href: '/settings', Icon: HiBars3 },
   ];
@@ -35,17 +35,32 @@ export default function BottomTabs() {
         border: '1px solid #1C3B4F',
       }}
     >
+      <svg width="0" height="0" className="absolute">
+        <defs>
+          <linearGradient id="tab-fade-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop stopColor="#57F177" offset="0%" />
+            <stop stopColor="#4CB2D8" offset="100%" />
+          </linearGradient>
+        </defs>
+      </svg>
+
       <div className="flex justify-around items-center h-full w-full">
         {tabs.map((tab) => {
           const isActive = pathname === tab.href;
           const Icon = tab.Icon;
+          
           return (
             <Link
               key={tab.href}
               href={tab.href}
               className="flex flex-col items-center justify-center h-full flex-1"
             >
-              <Icon className={`text-3xl transition-colors ${isActive ? 'text-[#57F177]' : 'text-gray-400'}`} />
+              <Icon 
+                className="text-3xl transition-all duration-300" 
+                style={{ 
+                  fill: isActive ? 'url(#tab-fade-gradient)' : '#9CA3AF',
+                }} 
+              />
             </Link>
           );
         })}

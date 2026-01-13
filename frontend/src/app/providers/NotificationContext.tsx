@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import { useTasks, type Task } from './TaskContext';
+import { useTasks } from './TaskContext';
 
 type Notification = {
   id: string;
@@ -18,7 +18,6 @@ type NotificationContextType = {
   unreadCount: number;
   addNotification: (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void;
   markAsRead: (id: string) => void;
-  markAllAsRead: () => void;
   deleteNotification: (id: string) => void;
   clearAll: () => void;
 };
@@ -29,83 +28,70 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const { tasks } = useTasks();
 
-  // Carregar notificações do localStorage
   useEffect(() => {
     const stored = localStorage.getItem('notifications');
     if (stored) {
       const parsed = JSON.parse(stored);
-      setNotifications(parsed.map((n: any) => ({
-        ...n,
-        timestamp: new Date(n.timestamp),
-      })));
+      setNotifications(parsed.map((n: any) => ({ ...n, timestamp: new Date(n.timestamp) })));
     }
   }, []);
 
-  // Guardar notificações no localStorage
   useEffect(() => {
-    if (notifications.length > 0) {
-      localStorage.setItem('notifications', JSON.stringify(notifications));
-    }
+    localStorage.setItem('notifications', JSON.stringify(notifications));
   }, [notifications]);
 
-  // Verificar lembretes de tarefas
   useEffect(() => {
-    const settings = localStorage.getItem('notificationSettings');
-    if (!settings) return;
-
-    const notifSettings = JSON.parse(settings);
-    if (!notifSettings.taskReminders) return;
-
     const checkTaskReminders = () => {
+      const settingsStr = localStorage.getItem('notificationSettings');
+      if (!settingsStr) return;
+      const notifSettings = JSON.parse(settingsStr);
+      
+      if (notifSettings.pauseAll || !notifSettings.taskReminders) return;
+
       const now = new Date();
       
       tasks.forEach(task => {
         if (task.completed) return;
 
         const taskStart = new Date(`${task.date}T${task.startTime}`);
-        const diffMinutes = Math.floor((taskStart.getTime() - now.getTime()) / (1000 * 60));
+        const diffMinutes = (taskStart.getTime() - now.getTime()) / (1000 * 60);
 
-        // Verificar se já existe notificação para esta tarefa
-        const existingNotif = notifications.find(n => n.taskId === task.id && !n.read);
-        if (existingNotif) return;
+        const alreadyNotified = notifications.some(n => n.taskId === task.id);
+        if (alreadyNotified) return;
 
         let shouldNotify = false;
-        let minutesBefore = 0;
+        let mins = 0;
 
         if (notifSettings.taskBefore15min && diffMinutes <= 15 && diffMinutes > 14) {
           shouldNotify = true;
-          minutesBefore = 15;
+          mins = 15;
         } else if (notifSettings.taskBefore30min && diffMinutes <= 30 && diffMinutes > 29) {
           shouldNotify = true;
-          minutesBefore = 30;
+          mins = 30;
         } else if (notifSettings.taskBefore1hour && diffMinutes <= 60 && diffMinutes > 59) {
           shouldNotify = true;
-          minutesBefore = 60;
+          mins = 60;
         }
 
         if (shouldNotify) {
           addNotification({
             title: `Lembrete: ${task.title}`,
-            message: `A sua tarefa começa em ${minutesBefore} minutos`,
+            message: `Começa em ${mins} minutos`,
             type: 'task',
             taskId: task.id,
           });
 
-          // Web Notification API (se permitido)
           if ('Notification' in window && Notification.permission === 'granted') {
-            new Notification(`Lembrete: ${task.title}`, {
-              body: `A sua tarefa começa em ${minutesBefore} minutos`,
-              icon: '/Logo/logo_512.png',
+            new Notification(`Estudo: ${task.title}`, {
+              body: `Faltam ${mins} minutos!`,
+              icon: '/Logo/Logo.jpg'
             });
           }
         }
       });
     };
 
-    // Verificar a cada minuto
-    const interval = setInterval(checkTaskReminders, 60000);
-    checkTaskReminders(); // Verificar imediatamente
-
+    const interval = setInterval(checkTaskReminders, 60000); 
     return () => clearInterval(interval);
   }, [tasks, notifications]);
 
@@ -120,13 +106,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const markAsRead = useCallback((id: string) => {
-    setNotifications(prev =>
-      prev.map(n => (n.id === id ? { ...n, read: true } : n))
-    );
-  }, []);
-
-  const markAllAsRead = useCallback(() => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+    setNotifications(prev => prev.map(n => (n.id === id ? { ...n, read: true } : n)));
   }, []);
 
   const deleteNotification = useCallback((id: string) => {
@@ -138,20 +118,15 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('notifications');
   }, []);
 
-  const unreadCount = notifications.filter(n => !n.read).length;
-
   return (
-    <NotificationContext.Provider
-      value={{
-        notifications,
-        unreadCount,
-        addNotification,
-        markAsRead,
-        markAllAsRead,
-        deleteNotification,
-        clearAll,
-      }}
-    >
+    <NotificationContext.Provider value={{ 
+      notifications, 
+      unreadCount: notifications.filter(n => !n.read).length, 
+      addNotification, 
+      markAsRead, 
+      deleteNotification, 
+      clearAll 
+    }}>
       {children}
     </NotificationContext.Provider>
   );
@@ -159,8 +134,6 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
 export function useNotifications() {
   const context = useContext(NotificationContext);
-  if (!context) {
-    throw new Error('useNotifications must be used within NotificationProvider');
-  }
+  if (!context) throw new Error('useNotifications must be used within NotificationProvider');
   return context;
 }

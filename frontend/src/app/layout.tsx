@@ -1,5 +1,6 @@
-'use client'; // Necessário para detetar a rota atual
+'use client'; 
 
+import { useEffect } from "react"; 
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "./providers/AuthContext";
@@ -7,6 +8,7 @@ import { TaskProvider } from "./providers/TaskContext";
 import { UIProvider } from "./providers/UIContext";
 import { NotificationProvider } from "./providers/NotificationContext";
 import BottomTabs from "./components/BottomTabs";
+import NotificationToast from "./components/NotificationToast"; 
 import { usePathname } from "next/navigation";
 
 const geistSans = Geist({
@@ -23,10 +25,29 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   const hideTabsPaths = ["/login", "/register", "/development"];
-  const shouldHideTabs = hideTabsPaths.includes(pathname);
+  const shouldHide = hideTabsPaths.includes(pathname);
+
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker
+          .register("/sw.js")
+          .then((reg) => console.log("PWA ativo!", reg.scope))
+          .catch((err) => console.error("Erro no PWA:", err));
+      });
+    }
+  }, []);
 
   return (
     <html lang="pt" suppressHydrationWarning>
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="StudySphere" />
+        <link rel="apple-touch-icon" href="/Logo/Logo.jpg" />
+        <meta name="theme-color" content="#06141F" />
+      </head>
       <body 
         className={`
           ${geistSans.variable} ${geistMono.variable} antialiased 
@@ -37,8 +58,11 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
           <TaskProvider>
             <NotificationProvider>
               <UIProvider>
+                {!shouldHide && <NotificationToast />} 
+                
                 {children}
-                {!shouldHideTabs && <BottomTabs />}
+                
+                {!shouldHide && <BottomTabs />}
               </UIProvider>
             </NotificationProvider>
           </TaskProvider>

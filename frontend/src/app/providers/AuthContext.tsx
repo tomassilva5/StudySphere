@@ -68,9 +68,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return { success: false, error: 'Credenciais em falta.' };
     }
 
-    const payload = identifier.includes('@')
-      ? { email: identifier, palavra_passe: password }
-      : { nome_utilizador: identifier, palavra_passe: password };
+    const id = identifier.trim();
+    const pw = password.trim();
+
+    const payload = id.includes('@')
+      ? { email: id, palavra_passe: pw }
+      : { nome_utilizador: id, palavra_passe: pw };
 
     try {
       const response = await fetch(`${API_URL}/auth/login`, {

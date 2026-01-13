@@ -1,128 +1,113 @@
 'use client';
 
 import { useState } from 'react';
-import { HiBell, HiXMark, HiCheckCircle } from 'react-icons/hi2';
+import { HiBell, HiXMark, HiBellAlert } from 'react-icons/hi2';
 import { useNotifications } from '../providers/NotificationContext';
 import { useRouter } from 'next/navigation';
 
 export default function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
-  const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification, clearAll } = useNotifications();
+  const { notifications, unreadCount, markAsRead, deleteNotification, clearAll } = useNotifications();
   const router = useRouter();
-
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case 'task':
-        return '📋';
-      case 'group':
-        return '👥';
-      case 'event':
-        return '📅';
-      case 'summary':
-        return '📊';
-      default:
-        return '🔔';
-    }
-  };
 
   const formatTime = (date: Date) => {
     const now = new Date();
     const diff = now.getTime() - date.getTime();
     const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(diff / 3600000);
-    const days = Math.floor(diff / 86400000);
-
     if (minutes < 1) return 'Agora';
     if (minutes < 60) return `Há ${minutes}min`;
-    if (hours < 24) return `Há ${hours}h`;
-    return `Há ${days}d`;
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   const handleNotificationClick = (notificationId: string, taskId?: string) => {
     markAsRead(notificationId);
-    if (taskId) {
-      router.push('/tasks');
-    }
+    if (taskId) router.push('/tasks');
     setIsOpen(false);
   };
 
   return (
     <div className="relative">
-      {/* Bell Icon */}
+      {/* Ícone do Sino com Badge */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 hover:bg-white/10 rounded-lg transition-colors"
+        className="relative p-2 hover:bg-white/10 rounded-xl transition-all active:scale-95"
       >
-        <HiBell className="text-white" size={24} />
+        <HiBell className="text-white" size={26} />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full w-5 h-5 flex items-center justify-center">
+          <span className="absolute top-1 right-1 bg-[#57F177] text-[#06141F] text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center border-2 border-[#06141F]">
             {unreadCount > 9 ? '9+' : unreadCount}
           </span>
         )}
       </button>
 
-      {/* Dropdown */}
+      {/* Painel de Notificações */}
       {isOpen && (
         <>
-          {/* Overlay */}
-          <div
-            className="fixed inset-0 z-40"
-            onClick={() => setIsOpen(false)}
-          />
+          {/* Overlay para fechar ao clicar fora */}
+          <div className="fixed inset-0 z-40" onClick={() => setIsOpen(false)} />
 
-          {/* Notificações Panel */}
-          <div className="absolute right-0 top-12 z-50 w-80 max-h-96 bg-[#0A1F2E] border border-gray-700 rounded-xl shadow-2xl overflow-hidden">
-            {/* Header */}
-            <div className="p-4 border-b border-gray-700 flex items-center justify-between bg-[#1C3B4F]/50">
-              <h3 className="text-white font-bold">Notificações</h3>
-              {notifications.length > 0 && (
-                <button
-                  onClick={markAllAsRead}
-                  className="text-[#57F177] text-sm hover:underline flex items-center gap-1"
-                >
-                  <HiCheckCircle size={16} />
-                  Marcar todas como lidas
-                </button>
-              )}
+          {/* 🟢 DESTAQUES ADICIONADOS: bg translúcido, backdrop-blur, glow verde e sombra extra profunda */}
+          <div className="absolute right-0 mt-3 z-50 w-[320px] bg-[#122533]/95 backdrop-blur-xl border border-[#57F177]/30 rounded-3xl shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7),0_0_20px_rgba(87,241,119,0.15)] overflow-hidden animate-in fade-in zoom-in-95 duration-200 ring-1 ring-white/10">
+            
+            {/* Cabeçalho */}
+            <div className="p-5 border-b border-white/10 bg-[#1C3B4F]/60 flex justify-between items-center">
+              <h3 className="text-white font-bold text-lg tracking-tight">Notificações</h3>
+              <button 
+                onClick={() => setIsOpen(false)}
+                className="text-gray-400 hover:text-white p-1 hover:bg-white/5 rounded-lg transition-colors"
+              >
+                <HiXMark size={24} />
+              </button>
             </div>
 
-            {/* Lista */}
-            <div className="overflow-y-auto max-h-80">
+            {/* Lista com Scroll */}
+            <div className="overflow-y-auto max-h-[380px] custom-scrollbar">
               {notifications.length === 0 ? (
-                <div className="p-8 text-center text-gray-400">
-                  <HiBell className="mx-auto mb-2" size={48} />
-                  <p>Sem notificações</p>
+                <div className="p-12 text-center text-gray-500">
+                  <HiBellAlert size={48} className="mx-auto mb-3 opacity-20" />
+                  <p className="text-sm font-medium">Sem notificações no momento</p>
                 </div>
               ) : (
                 notifications.map(notification => (
                   <div
                     key={notification.id}
                     onClick={() => handleNotificationClick(notification.id, notification.taskId)}
-                    className={`p-4 border-b border-gray-700/50 hover:bg-white/5 cursor-pointer transition-colors ${
+                    className={`p-4 border-b border-white/5 flex gap-4 items-center cursor-pointer transition-all hover:bg-white/5 relative ${
                       !notification.read ? 'bg-[#57F177]/5' : ''
                     }`}
                   >
-                    <div className="flex items-start gap-3">
-                      <span className="text-2xl">{getNotificationIcon(notification.type)}</span>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between gap-2">
-                          <h4 className={`font-medium ${!notification.read ? 'text-white' : 'text-gray-300'}`}>
-                            {notification.title}
-                          </h4>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deleteNotification(notification.id);
-                            }}
-                            className="text-gray-500 hover:text-red-500 transition-colors"
-                          >
-                            <HiXMark size={16} />
-                          </button>
-                        </div>
-                        <p className="text-sm text-gray-400 mt-1">{notification.message}</p>
-                        <p className="text-xs text-gray-500 mt-1">{formatTime(notification.timestamp)}</p>
-                      </div>
+                    {/* Logo */}
+                    <div className="w-10 h-10 flex-shrink-0 bg-[#1C3B4F] rounded-xl p-1.5 shadow-inner border border-white/5">
+                      <img 
+                        src="/Logo/Logo_sem_fundo.png" 
+                        alt="StudySphere" 
+                        className="w-full h-full object-contain" 
+                      />
                     </div>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-start gap-2">
+                        <h4 className={`text-sm font-semibold leading-tight truncate ${!notification.read ? 'text-white' : 'text-gray-400'}`}>
+                          {notification.title}
+                        </h4>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            deleteNotification(notification.id);
+                          }}
+                          className="text-gray-600 hover:text-red-400 p-0.5 transition-colors"
+                        >
+                          <HiXMark size={16} />
+                        </button>
+                      </div>
+                      <p className="text-xs text-gray-400 mt-1 line-clamp-2">{notification.message}</p>
+                      <p className="text-[10px] text-gray-500 mt-2 font-medium uppercase tracking-widest">{formatTime(notification.timestamp)}</p>
+                    </div>
+
+                    {/* Indicador lateral para notificações novas */}
+                    {!notification.read && (
+                      <div className="absolute left-1 top-1/2 -translate-y-1/2 w-1 h-8 bg-[#57F177] rounded-full shadow-[0_0_8px_rgba(87,241,119,0.5)]" />
+                    )}
                   </div>
                 ))
               )}
@@ -130,21 +115,28 @@ export default function NotificationBell() {
 
             {/* Footer */}
             {notifications.length > 0 && (
-              <div className="p-3 border-t border-gray-700 bg-[#1C3B4F]/30">
+              <div className="p-4 bg-black/20 text-center">
                 <button
                   onClick={() => {
                     clearAll();
                     setIsOpen(false);
                   }}
-                  className="w-full text-center text-red-400 text-sm hover:text-red-300 transition-colors"
+                  className="text-red-400/80 text-[10px] font-bold hover:text-red-400 transition-colors uppercase tracking-[0.2em]"
                 >
-                  Limpar todas
+                  Limpar notificações
                 </button>
               </div>
             )}
           </div>
         </>
       )}
+
+      <style jsx>{`
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #1C3B4F; border-radius: 10px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #57F177; }
+      `}</style>
     </div>
   );
 }

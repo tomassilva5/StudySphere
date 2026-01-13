@@ -13,7 +13,6 @@ export default function DevelopmentPage() {
     <div className="flex min-h-screen flex-col items-center justify-center pb-20" style={{background: 'var(--background)'}}>
       <div className="flex flex-col items-center text-center p-4">
         <h1 className="text-3xl font-bold text-white mb-6">Em Desenvolviento</h1>
-        {/* <p className="text-zinc-400 text-lg mb-3">Esta página está em desenvolvimento.</p> */}
         <p className="text-zinc-400 text-lg mb-8">Agradecemos a compreensão.</p>
 
         <button
