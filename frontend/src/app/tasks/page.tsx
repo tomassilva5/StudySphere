@@ -43,25 +43,35 @@ function TaskItem({
   onDelete: (task: Task) => void;
   onEdit: (task: Task) => void;
 }) {
+  const isGoogleEvent = task.id.startsWith('google-');
+  
   return (
     <div
       className={`rounded-xl p-3 border border-zinc-800 transition-all ${
         task.completed ? 'bg-[#1C3B4F]/70 opacity-80' : 'bg-[#1C3B4F]'
-      }`}
+      } ${isGoogleEvent ? 'border-l-4 border-l-blue-500' : ''}`}
     >
       <div className="flex items-center gap-3">
         <FiCheckSquare
-          onClick={() => toggleTask(task.id)}
-          className={`text-xl cursor-pointer transition-colors ${
-            task.completed ? 'text-green-400' : 'text-zinc-500'
+          onClick={() => !isGoogleEvent && toggleTask(task.id)}
+          className={`text-xl transition-colors ${
+            isGoogleEvent ? 'text-zinc-600 cursor-not-allowed' :
+            task.completed ? 'text-green-400 cursor-pointer' : 'text-zinc-500 cursor-pointer'
           }`}
           aria-label={task.completed ? 'Desmarcar' : 'Marcar'}
           role="button"
         />
         <div className="flex-1">
-          <h3 className={`font-medium ${task.completed ? 'text-zinc-400 line-through' : 'text-white'}`}>
-            {task.title}
-          </h3>
+          <div className="flex items-center gap-2">
+            <h3 className={`font-medium ${task.completed ? 'text-zinc-400 line-through' : 'text-white'}`}>
+              {task.title}
+            </h3>
+            {isGoogleEvent && (
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-blue-500/20 text-blue-400 font-medium">
+                Google
+              </span>
+            )}
+          </div>
           <div className="flex items-center gap-2 mt-1">
             <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold text-white uppercase ${typeColors[task.type]} ${task.completed ? 'opacity-50' : ''}`}>
               {typeLabels[task.type]}
@@ -73,22 +83,26 @@ function TaskItem({
           </div>
         </div>
         <div className="flex gap-2">
-          <button 
-            type="button" 
-            aria-label="Editar" 
-            className="hover:text-white transition-colors"
-            onClick={() => onEdit(task)}
-          >
-            <FiEdit2 className="text-zinc-400" size={16} aria-hidden="true" />
-          </button>
-          <button 
-            type="button" 
-            aria-label="Excluir" 
-            className="hover:text-red-400 transition-colors"
-            onClick={() => onDelete(task)}
-          >
-            <FiTrash2 className="text-red-500/80" size={16} aria-hidden="true" />
-          </button>
+          {!isGoogleEvent && (
+            <>
+              <button 
+                type="button" 
+                aria-label="Editar" 
+                className="hover:text-white transition-colors"
+                onClick={() => onEdit(task)}
+              >
+                <FiEdit2 className="text-zinc-400" size={16} aria-hidden="true" />
+              </button>
+              <button 
+                type="button" 
+                aria-label="Excluir" 
+                className="hover:text-red-400 transition-colors"
+                onClick={() => onDelete(task)}
+              >
+                <FiTrash2 className="text-red-500/80" size={16} aria-hidden="true" />
+              </button>
+            </>
+          )}
         </div>
       </div>
     </div>

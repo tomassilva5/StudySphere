@@ -5,6 +5,7 @@ const router = Router();
 
 router.get("/search", userController.searchUsers)
 router.get("/me", userController.getCurrentUser)
+router.get("/google-status", userController.getGoogleStatus)
 router.get("/", userController.getAll)
 router.get("/:nome_utilizador", userController.getUser)
 router.get("/:id", userController.getById)
