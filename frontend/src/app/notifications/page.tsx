@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { HiChevronLeft } from 'react-icons/hi2';
+import { HiBell, HiChevronLeft, HiCheckCircle } from 'react-icons/hi2';
+import StickyHeaderDate from '../components/StickyHeaderDate';
 
 type NotificationSettings = {
   pauseAll: boolean;

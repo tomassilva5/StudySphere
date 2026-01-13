@@ -85,16 +85,37 @@ export default{
         })
     },
     async deleteEvent(id:string, userId:string){
-        // Verificar se o evento pertence ao utilizador
+        // Verificar se o evento existe
         const evento = await prisma.evento.findUnique({
             where: { id },
+            include: {
+                grupos_evento: {
+                    include: {
+                        grupo: {
+                            include: {
+                                membros: {
+                                    where: {
+                                        utilizador_id: userId
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         });
         
         if (!evento) {
             throw new Error('Event not found');
         }
         
-        if (evento.utilizador_id !== userId) {
+        // Verificar se é evento do utilizador ou se é evento de um grupo onde o utilizador é membro
+        const isOwner = evento.utilizador_id === userId;
+        const isGroupMember = evento.grupos_evento.some(ge => 
+            ge.grupo.membros.length > 0
+        );
+        
+        if (!isOwner && !isGroupMember) {
             throw new Error('Unauthorized');
         }
         
