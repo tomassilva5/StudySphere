@@ -139,17 +139,25 @@ export default {
         });
     },
     async edituser(data: UserUpdate){
+        if (!data.email || !data.palavra_passe) {
+            throw new Error("Email e palavra-passe são obrigatórios");
+        }
+
         const user = await prisma.utilizador.findUnique({
             where: { email: data.email },
             select: { id: true },
         });
+
+        if (!user) {
+            throw new Error("Utilizador não encontrado");
+        }
+
         const hashed_password = await bcrypt.hash(data.palavra_passe, 14);
         return prisma.utilizador.update({
-            where: { id: user?.id },
+            where: { id: user.id },
             data: {
                 palavra_passe: hashed_password,
             },
-
         });
     }
 };

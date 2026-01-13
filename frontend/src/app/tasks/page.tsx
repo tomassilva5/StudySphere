@@ -9,7 +9,7 @@ import { useUI } from '@/app/providers/UIContext';
 // 1. IMPORTAR OS COMPONENTES REUTILIZÁVEIS
 import ButtonAdd from '../components/ButtonAdd';
 import Modal from '../components/Modal';
-import HeaderDate from '../components/HeaderDate'; // Importação do componente global de data
+import StickyHeaderDate from '../components/StickyHeaderDate'; // Importação do componente global de data sticky
 
 // Tipos Globais
 type RepeatType = 'Nunca' | 'Todos os dias' | 'Todas as semanas' | 'Todos os meses';
@@ -347,7 +347,7 @@ export default function TasksPage() {
     <div className="flex min-h-screen flex-col pb-24" style={{ background: 'var(--background)' }}>
       
       {/* 3. SUBSTITUIÇÃO DA DATA MANUAL PELO COMPONENTE GLOBAL */}
-      <HeaderDate />
+      <StickyHeaderDate />
 
       {/* Filtros / Tabs */}
       <div className="flex px-4 gap-2 mb-4 overflow-x-auto pb-2 scrollbar-hide" role="tablist">

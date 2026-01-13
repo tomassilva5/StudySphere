@@ -15,7 +15,7 @@ type Task = {
   titulo: string;
   responsavel: string;
   data: string;
-  concluida: boolean;
+  completed: boolean;
 };
 
 type Message = {
@@ -63,9 +63,9 @@ export default function GroupDetailPage() {
   const socketRef = useRef<Socket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Controlar visibilidade do BottomTabs baseado na tab ativa
+  // Controlar visibilidade do BottomTabs baseado na tab ativa e modais
   useEffect(() => {
-    if (activeTab === 'chat') {
+    if (activeTab === 'chat' || showTaskModal || taskToDelete) {
       hideBottomTabs();
     } else {
       showBottomTabs();
@@ -74,7 +74,7 @@ export default function GroupDetailPage() {
     return () => {
       showBottomTabs();
     };
-  }, [activeTab, hideBottomTabs, showBottomTabs]);
+  }, [activeTab, showTaskModal, taskToDelete, hideBottomTabs, showBottomTabs]);
 
   // Scroll automático para a última mensagem
   useEffect(() => {
@@ -112,7 +112,7 @@ export default function GroupDetailPage() {
               day: 'numeric',
               month: 'short'
             }),
-            concluida: eg.evento.estado === 'concluido',
+            completed: eg.evento.estado === 'concluido',
           })) || [];
           
           setTasks(tasksData);
@@ -238,7 +238,12 @@ export default function GroupDetailPage() {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
 
-    const newStatus = !task.concluida;
+    const newStatus = !task.completed;
+    
+    // Atualização otimista
+    setTasks(tasks.map(t => 
+      t.id === taskId ? { ...t, completed: newStatus } : t
+    ));
     
     try {
       const response = await fetch(`/api/v1/events/${taskId}`, {
@@ -250,12 +255,18 @@ export default function GroupDetailPage() {
         }),
       });
 
-      if (response.ok) {
+      if (!response.ok) {
+        // Reverter em caso de erro
         setTasks(tasks.map(t => 
-          t.id === taskId ? { ...t, concluida: newStatus } : t
+          t.id === taskId ? { ...t, completed: !newStatus } : t
         ));
+        console.error('Erro ao atualizar tarefa');
       }
     } catch (error) {
+      // Reverter em caso de erro
+      setTasks(tasks.map(t => 
+        t.id === taskId ? { ...t, completed: !newStatus } : t
+      ));
       console.error('Erro ao atualizar tarefa:', error);
     }
   };
@@ -267,18 +278,32 @@ export default function GroupDetailPage() {
   const handleConfirmDelete = async () => {
     if (!taskToDelete) return;
     
+    const taskId = taskToDelete.id;
+    
+    // Fechar modal imediatamente
+    setTaskToDelete(null);
+    
+    // Remover da lista otimisticamente
+    const previousTasks = [...tasks];
+    setTasks(tasks.filter(t => t.id !== taskId));
+    
     try {
-      const response = await fetch(`/api/v1/events/${taskToDelete.id}`, {
+      const response = await fetch(`/api/v1/events/${taskId}`, {
         method: 'DELETE',
         credentials: 'include',
       });
 
-      if (response.ok) {
-        setTasks(tasks.filter(t => t.id !== taskToDelete.id));
-        setTaskToDelete(null);
+      if (!response.ok) {
+        // Se falhar, restaurar tasks
+        setTasks(previousTasks);
+        console.error('Erro ao eliminar tarefa');
+        alert('Erro ao eliminar tarefa. Tente novamente.');
       }
     } catch (error) {
+      // Restaurar tasks em caso de erro
+      setTasks(previousTasks);
       console.error('Erro ao eliminar tarefa:', error);
+      alert('Erro ao eliminar tarefa. Tente novamente.');
     }
   };
 
@@ -328,7 +353,7 @@ export default function GroupDetailPage() {
               day: 'numeric',
               month: 'short'
             }),
-            concluida: false,
+            completed: false,
           };
           
           setTasks([...tasks, newTask]);
@@ -359,8 +384,16 @@ export default function GroupDetailPage() {
     );
   }
 
+  const containerClass = activeTab === 'chat'
+    ? 'h-screen overflow-hidden flex flex-col'
+    : 'min-h-screen pb-24 flex flex-col';
+
+  const contentWrapperClass = activeTab === 'chat'
+    ? 'flex-1 overflow-hidden px-6'
+    : 'px-6';
+
   return (
-    <div className="min-h-screen pb-24" style={{ background: 'var(--background)' }}>
+    <div className={containerClass} style={{ background: 'var(--background)' }}>
       {/* Header */}
       <div className="sticky top-0 z-10 bg-gradient-to-b from-[#06141F] via-[#06141F] to-transparent pt-6 pb-4 px-6">
         <div className="flex items-center justify-between mb-4">
@@ -415,7 +448,7 @@ export default function GroupDetailPage() {
       </div>
 
       {/* Content */}
-      <div className="px-6">
+      <div className={contentWrapperClass}>
         {activeTab === 'tasks' ? (
           <>
             <div className="space-y-3">
@@ -428,27 +461,27 @@ export default function GroupDetailPage() {
                   <div
                     key={task.id}
                     className={`rounded-xl p-3 border border-zinc-800 transition-all ${
-                      task.concluida ? 'bg-[#1C3B4F]/70 opacity-80' : 'bg-[#1C3B4F]'
+                      task.completed ? 'bg-[#1C3B4F]/70 opacity-80' : 'bg-[#1C3B4F]'
                     }`}
                   >
                     <div className="flex items-center gap-3">
                       <FiCheckSquare
                         onClick={() => handleToggleTask(task.id)}
                         className={`text-xl cursor-pointer transition-colors ${
-                          task.concluida ? 'text-green-400' : 'text-zinc-500'
+                          task.completed ? 'text-green-400' : 'text-zinc-500'
                         }`}
-                        aria-label={task.concluida ? 'Desmarcar' : 'Marcar'}
+                        aria-label={task.completed ? 'Desmarcar' : 'Marcar'}
                         role="button"
                       />
                       <div className="flex-1">
-                        <h3 className={`font-medium ${task.concluida ? 'text-zinc-400 line-through' : 'text-white'}`}>
+                        <h3 className={`font-medium ${task.completed ? 'text-zinc-400 line-through' : 'text-white'}`}>
                           {task.titulo}
                         </h3>
                         <div className="flex items-center gap-2 mt-1">
-                          <span className={`text-xs flex items-center gap-1 ${task.concluida ? 'text-zinc-500' : 'text-zinc-400'}`}>
+                          <span className={`text-xs flex items-center gap-1 ${task.completed ? 'text-zinc-500' : 'text-zinc-400'}`}>
                             {task.responsavel}
                           </span>
-                          <span className={`text-xs ${task.concluida ? 'text-zinc-500' : 'text-zinc-400'}`}>
+                          <span className={`text-xs ${task.completed ? 'text-zinc-500' : 'text-zinc-400'}`}>
                             • {task.data}
                           </span>
                         </div>
@@ -471,7 +504,7 @@ export default function GroupDetailPage() {
             <ButtonAdd onClick={() => setShowTaskModal(true)} />
           </>
         ) : (
-          <div className="flex flex-col h-[calc(100vh-320px)]">
+          <div className="flex flex-col h-full">
             {/* Indicador de status WebSocket */}
             <div className="flex items-center justify-center gap-2 mb-4 py-2 px-4 rounded-lg bg-[#1C3B4F]/40">
               <div className={`w-2 h-2 rounded-full ${isSocketConnected ? 'bg-green-500 animate-pulse' : 'bg-gray-500'}`} />
@@ -536,7 +569,7 @@ export default function GroupDetailPage() {
             </div>
 
             {/* Input */}
-            <div className="flex gap-2">
+            <div className="flex gap-2 mb-3">
               <input
                 type="text"
                 value={messageInput}

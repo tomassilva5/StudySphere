@@ -1,5 +1,5 @@
 import userService from "../services/user.service";
-import { UserCreateDTO } from "../types/user.dto";
+import { UserCreateDTO, UserUpdate } from "../types/user.dto";
 import { Request, Response } from "express";
 import { Prisma } from "@prisma/client";
 
@@ -145,11 +145,17 @@ export default {
     },
     async editUser(req: Request, res: Response){
         try {
-            const data: UserCreateDTO = req.body;
-            data.nome_utilizador = req.user!.identity;
+            const { email, palavra_passe } = req.body;
+            
+            if (!email || !palavra_passe) {
+                return res.status(400).json({ message: "Email e palavra-passe são obrigatórios" });
+            }
+            
+            const data: UserUpdate = { email, palavra_passe };
             await userService.editUser(data);
             res.status(200).json({ message: "User edited successfully" });
         } catch (error) {
+            console.error('Error editing user:', error);
             res.status(500).json({ message: "Error editing user" });
         }
     }

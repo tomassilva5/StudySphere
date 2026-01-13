@@ -9,7 +9,7 @@ import {
 } from "react-icons/hi2";
 
 import Modal from '../components/Modal';
-import HeaderDate from '../components/HeaderDate';
+import StickyHeaderDate from '../components/StickyHeaderDate';
 import InputField from '../components/InputField';
 
 export default function Settings() {
@@ -56,21 +56,57 @@ export default function Settings() {
   }, [searchParams]);
 
   useEffect(() => {
-    if (isEditModalOpen && user) {
-      setName(user.name || '');
+    if (isEditModalOpen) {
       setPassword('');
       setConfirmPassword('');
       setError('');
     }
-  }, [isEditModalOpen, user]);
+  }, [isEditModalOpen]);
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (password && password !== confirmPassword) {
-      setError('As palavras-passe não coincidem.');
-      return;
+    
+    // Validar password se o utilizador tentar mudar
+    if (password || confirmPassword) {
+      if (!password || !confirmPassword) {
+        setError('Preencha ambos os campos de palavra-passe.');
+        return;
+      }
+      if (password !== confirmPassword) {
+        setError('As palavras-passe não coincidem.');
+        return;
+      }
+      if (password.length < 8) {
+        setError('A palavra-passe deve ter pelo menos 8 caracteres.');
+        return;
+      }
     }
-    setIsEditModalOpen(false);
+
+    try {
+      const payload = {
+        email: user?.email,
+        palavra_passe: password || undefined,
+      };
+
+      const response = await fetch('/api/v1/users/edit', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify(payload),
+      });
+
+      if (response.ok) {
+        setIsEditModalOpen(false);
+        setPassword('');
+        setConfirmPassword('');
+      } else {
+        const data = await response.json().catch(() => ({}));
+        setError(data.message || 'Erro ao atualizar perfil.');
+      }
+    } catch (error) {
+      setError('Erro ao atualizar perfil.');
+      console.error('Error updating profile:', error);
+    }
   };
 
   const handleConnectGoogle = async () => {
@@ -120,7 +156,7 @@ export default function Settings() {
 
   return (
     <div className="min-h-screen pb-24" style={{ background: 'var(--background)' }}>
-      <HeaderDate />
+      <StickyHeaderDate />
 
       <div className="px-6">
         <div className="bg-[#1C3B4F]/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 mb-8 flex items-center gap-4">
@@ -183,14 +219,12 @@ export default function Settings() {
               <HiUser className="text-[#6EE7B7]" size={32} />
             </div>
             
-            <h3 className="text-white text-xl font-bold mb-1">Editar Perfil</h3>
-            <p className="text-gray-400 mb-6 text-sm">Atualize os seus dados de conta.</p>
+            <h3 className="text-white text-xl font-bold mb-1">Mudar Palavra-passe</h3>
+            <p className="text-gray-400 mb-6 text-sm">Atualize a sua palavra-passe de forma segura.</p>
 
             <form onSubmit={handleUpdate} className="text-left space-y-4">
-              <InputField id="name" label="Nome Completo" value={name} onChange={(e) => setName(e.target.value)} />
-              
               <div className="opacity-50">
-                <InputField id="email" label="E-mail (Não editável)" value={user?.email || ''} onChange={() => {}} />
+                <InputField id="username" label="Nome de Utilizador (Não editável)" value={user?.username || ''} onChange={() => {}} />
               </div>
 
               <InputField id="password" label="Nova Palavra-passe" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
@@ -268,6 +302,19 @@ export default function Settings() {
                     <p className="text-gray-400 text-xs">Eventos sincronizam automaticamente</p>
                   </div>
                 </div>
+              )}
+              {googleConnected && (
+                <button
+                  onClick={handleSyncCalendar}
+                  disabled={syncing}
+                  className={`w-full rounded-xl py-3.5 text-base font-bold text-white shadow-lg transition-all
+                    ${syncing
+                      ? 'bg-gray-600 cursor-not-allowed opacity-70'
+                      : 'bg-gradient-to-r from-[#57F177] to-[#4CB2D8] hover:opacity-90 active:scale-[0.98]'
+                    }`}
+                >
+                  {syncing ? 'A sincronizar...' : 'Atualizar sincronização'}
+                </button>
               )}
               <button
                 type="button"

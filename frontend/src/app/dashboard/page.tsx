@@ -4,7 +4,7 @@ import { FiChevronRight, FiCalendar } from 'react-icons/fi';
 import { useRouter } from 'next/navigation';
 import { useTasks } from '@/app/providers/TaskContext';
 import { useAuth } from '@/app/providers/AuthContext';
-import HeaderDate from '@/app/components/HeaderDate'; 
+import StickyHeaderDate from '@/app/components/StickyHeaderDate'; 
 
 type TimeDistributionProps = {
   category: string;
@@ -98,7 +98,7 @@ export default function Dashboard() {
     <div className="flex min-h-screen flex-col pb-24" style={{background: 'var(--background)'}}>
       
       {/* 1. Componente Global de Data (Com o novo Fade) */}
-      <HeaderDate />
+      <StickyHeaderDate />
 
       <div className="px-4 space-y-6">
         
