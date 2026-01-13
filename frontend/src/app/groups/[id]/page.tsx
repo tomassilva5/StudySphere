@@ -8,6 +8,7 @@ import HeaderDate from '../../components/HeaderDate';
 import Modal from '../../components/Modal';
 import ButtonAdd from '../../components/ButtonAdd';
 import { io, Socket } from 'socket.io-client';
+import { useUI } from '@/app/providers/UIContext';
 
 type Task = {
   id: string;
@@ -46,6 +47,7 @@ export default function GroupDetailPage() {
   const params = useParams();
   const router = useRouter();
   const groupId = params.id as string;
+  const { hideBottomTabs, showBottomTabs } = useUI();
   
   const [activeTab, setActiveTab] = useState<'tasks' | 'chat'>('tasks');
   const [group, setGroup] = useState<GroupDetails | null>(null);
@@ -60,6 +62,19 @@ export default function GroupDetailPage() {
   
   const socketRef = useRef<Socket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Controlar visibilidade do BottomTabs baseado na tab ativa
+  useEffect(() => {
+    if (activeTab === 'chat') {
+      hideBottomTabs();
+    } else {
+      showBottomTabs();
+    }
+    
+    return () => {
+      showBottomTabs();
+    };
+  }, [activeTab, hideBottomTabs, showBottomTabs]);
 
   // Scroll automático para a última mensagem
   useEffect(() => {
@@ -456,7 +471,7 @@ export default function GroupDetailPage() {
             <ButtonAdd onClick={() => setShowTaskModal(true)} />
           </>
         ) : (
-          <div className="flex flex-col h-[calc(100vh-400px)]">
+          <div className="flex flex-col h-[calc(100vh-320px)]">
             {/* Indicador de status WebSocket */}
             <div className="flex items-center justify-center gap-2 mb-4 py-2 px-4 rounded-lg bg-[#1C3B4F]/40">
               <div className={`w-2 h-2 rounded-full ${isSocketConnected ? 'bg-green-500 animate-pulse' : 'bg-gray-500'}`} />
@@ -466,7 +481,7 @@ export default function GroupDetailPage() {
             </div>
             
             {/* Messages */}
-            <div className="flex-1 overflow-y-auto space-y-4 mb-4">
+            <div className="flex-1 overflow-y-auto space-y-4 mb-4 pb-4">
               {messages.length === 0 ? (
                 <div className="text-center py-12">
                   <p className="text-gray-400">Nenhuma mensagem ainda</p>
