@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
-import { useTasks, type Task } from './TaskContext';
+import { useTasks } from './TaskContext';
 
 type Notification = {
   id: string;
@@ -29,7 +29,6 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const { tasks } = useTasks();
 
-  // Carregar notificações do localStorage
   useEffect(() => {
     const stored = localStorage.getItem('notifications');
     if (stored) {
@@ -41,22 +40,20 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // Guardar notificações no localStorage
   useEffect(() => {
-    if (notifications.length > 0) {
-      localStorage.setItem('notifications', JSON.stringify(notifications));
-    }
+    localStorage.setItem('notifications', JSON.stringify(notifications));
   }, [notifications]);
 
-  // Verificar lembretes de tarefas
   useEffect(() => {
-    const settings = localStorage.getItem('notificationSettings');
-    if (!settings) return;
-
-    const notifSettings = JSON.parse(settings);
-    if (!notifSettings.taskReminders) return;
-
     const checkTaskReminders = () => {
+      const settingsStr = localStorage.getItem('notificationSettings');
+      if (!settingsStr) return;
+
+      const notifSettings = JSON.parse(settingsStr);
+      
+      // Se "Pause All" estiver ativo ou "Reminders" desativado, não processa nada
+      if (notifSettings.pauseAll || !notifSettings.taskReminders) return;
+
       const now = new Date();
       
       tasks.forEach(task => {
@@ -65,20 +62,19 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         const taskStart = new Date(`${task.date}T${task.startTime}`);
         const diffMinutes = Math.floor((taskStart.getTime() - now.getTime()) / (1000 * 60));
 
-        // Verificar se já existe notificação para esta tarefa
-        const existingNotif = notifications.find(n => n.taskId === task.id && !n.read);
-        if (existingNotif) return;
+        const alreadyNotified = notifications.some(n => n.taskId === task.id && !n.read);
+        if (alreadyNotified) return;
 
         let shouldNotify = false;
         let minutesBefore = 0;
 
-        if (notifSettings.taskBefore15min && diffMinutes <= 15 && diffMinutes > 14) {
+        if (notifSettings.taskBefore15min && diffMinutes === 15) {
           shouldNotify = true;
           minutesBefore = 15;
-        } else if (notifSettings.taskBefore30min && diffMinutes <= 30 && diffMinutes > 29) {
+        } else if (notifSettings.taskBefore30min && diffMinutes === 30) {
           shouldNotify = true;
           minutesBefore = 30;
-        } else if (notifSettings.taskBefore1hour && diffMinutes <= 60 && diffMinutes > 59) {
+        } else if (notifSettings.taskBefore1hour && diffMinutes === 60) {
           shouldNotify = true;
           minutesBefore = 60;
         }
@@ -86,26 +82,22 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
         if (shouldNotify) {
           addNotification({
             title: `Lembrete: ${task.title}`,
-            message: `A sua tarefa começa em ${minutesBefore} minutos`,
+            message: `Começa em ${minutesBefore} minutos`,
             type: 'task',
             taskId: task.id,
           });
 
-          // Web Notification API (se permitido)
           if ('Notification' in window && Notification.permission === 'granted') {
             new Notification(`Lembrete: ${task.title}`, {
-              body: `A sua tarefa começa em ${minutesBefore} minutos`,
-              icon: '/Logo/logo_512.png',
+              body: `Começa em ${minutesBefore} minutos`,
+              icon: '/Logo/Logo.jpg',
             });
           }
         }
       });
     };
 
-    // Verificar a cada minuto
-    const interval = setInterval(checkTaskReminders, 60000);
-    checkTaskReminders(); // Verificar imediatamente
-
+    const interval = setInterval(checkTaskReminders, 60000); 
     return () => clearInterval(interval);
   }, [tasks, notifications]);
 
@@ -120,9 +112,7 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const markAsRead = useCallback((id: string) => {
-    setNotifications(prev =>
-      prev.map(n => (n.id === id ? { ...n, read: true } : n))
-    );
+    setNotifications(prev => prev.map(n => (n.id === id ? { ...n, read: true } : n)));
   }, []);
 
   const markAllAsRead = useCallback(() => {
@@ -138,13 +128,11 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('notifications');
   }, []);
 
-  const unreadCount = notifications.filter(n => !n.read).length;
-
   return (
     <NotificationContext.Provider
       value={{
         notifications,
-        unreadCount,
+        unreadCount: notifications.filter(n => !n.read).length,
         addNotification,
         markAsRead,
         markAllAsRead,
@@ -159,8 +147,6 @@ export function NotificationProvider({ children }: { children: ReactNode }) {
 
 export function useNotifications() {
   const context = useContext(NotificationContext);
-  if (!context) {
-    throw new Error('useNotifications must be used within NotificationProvider');
-  }
+  if (!context) throw new Error('useNotifications must be used within NotificationProvider');
   return context;
 }

@@ -1,5 +1,6 @@
-'use client'; // Necessário para detetar a rota atual
+'use client'; 
 
+import { useEffect } from "react"; 
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "./providers/AuthContext";
@@ -25,8 +26,27 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   const hideTabsPaths = ["/login", "/register", "/development"];
   const shouldHideTabs = hideTabsPaths.includes(pathname);
 
+  useEffect(() => {
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker
+          .register("/sw.js") 
+          .then((reg) => console.log("PWA: Service Worker ativo!", reg.scope))
+          .catch((err) => console.error("PWA: Erro ao registar:", err));
+      });
+    }
+  }, []);
+
   return (
     <html lang="pt" suppressHydrationWarning>
+      <head>
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="TaskApp" />
+        <link rel="apple-touch-icon" href="/Logo/Logo.jpg" />
+        <meta name="theme-color" content="#06141F" />
+      </head>
       <body 
         className={`
           ${geistSans.variable} ${geistMono.variable} antialiased 

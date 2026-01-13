@@ -43,12 +43,10 @@ export default function LoginPage() {
 
             <div className="flex-1 flex flex-col items-center justify-start pt-6 px-6 overflow-y-auto -mt-3">
 
-                {/* Logo + Frase (Ajustado com as margens do Registo) */}
                 <div className="flex flex-col items-center text-center">
                     <div className="relative mb-0 h-[268px] w-[268px]">
                         <Image src="/Logo/Logo.jpg" alt="Logo" fill className="object-contain rounded-full" priority />
                     </div>
-                    {/* -mt-1 para aproximar do logo e mb-6 para afastar do campo */}
                     <p className="text-gray-200 text-base font-bold tracking-wide -mt-1 mb-6 relative z-10">
                         Acede à tua conta para continuar
                     </p>

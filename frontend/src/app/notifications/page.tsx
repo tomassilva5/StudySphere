@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { HiBell, HiChevronLeft, HiCheckCircle } from 'react-icons/hi2';
-import HeaderDate from '../components/HeaderDate';
+import { HiChevronLeft } from 'react-icons/hi2';
 
 type NotificationSettings = {
+  pauseAll: boolean;
   taskReminders: boolean;
   taskBefore15min: boolean;
   taskBefore30min: boolean;
@@ -18,72 +18,98 @@ type NotificationSettings = {
 export default function NotificationsPage() {
   const router = useRouter();
   const [settings, setSettings] = useState<NotificationSettings>({
+    pauseAll: false,
     taskReminders: true,
     taskBefore15min: true,
     taskBefore30min: false,
     taskBefore1hour: false,
-    dailySummary: true,
-    groupUpdates: true,
-    eventChanges: true,
+    dailySummary: false,
+    groupUpdates: false,
+    eventChanges: false,
   });
 
-  const [saved, setSaved] = useState(false);
-
+  // 1. Carregar definições e registar o Service Worker para Mobile
   useEffect(() => {
-    // Carregar configurações do localStorage
     const stored = localStorage.getItem('notificationSettings');
     if (stored) {
       setSettings(JSON.parse(stored));
     }
+
+    // Registo do Service Worker (essencial para PWA no iPhone/Android)
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').then((reg) => {
+        console.log('Service Worker registado com sucesso:', reg.scope);
+      }).catch((err) => {
+        console.error('Falha ao registar Service Worker:', err);
+      });
+    }
   }, []);
 
-  const handleToggle = (key: keyof NotificationSettings) => {
-    const newValue = !settings[key];
-    
-    setSettings(prev => ({
-      ...prev,
-      [key]: newValue,
-    }));
-
-    // Pedir permissão de notificações do navegador quando ativar lembretes
-    if (key === 'taskReminders' && newValue) {
-      if ('Notification' in window && Notification.permission === 'default') {
-        Notification.requestPermission();
-      }
+  // 2. Função para disparar notificação local de teste (Apenas Frontend)
+  const sendTestNotification = () => {
+    if (Notification.permission === "granted") {
+      new Notification("Lembrete Ativado! 🔔", {
+        body: "Irás receber alertas das tuas tarefas neste telemóvel.",
+        icon: "/Logo/Logo.jpg", // Certifica-te que este ficheiro existe em /public
+        badge: "/Logo/Logo.jpg",
+      });
     }
   };
 
-  const handleSave = () => {
-    localStorage.setItem('notificationSettings', JSON.stringify(settings));
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  // 3. Lógica de Toggle com Pedido de Permissão Real
+  const handleToggle = async (key: keyof NotificationSettings) => {
+    // Se o utilizador tentar ligar lembretes, pedimos permissão ao telemóvel
+    if (key === 'taskReminders' && !settings.taskReminders) {
+      if (!("Notification" in window)) {
+        alert("Este telemóvel não suporta notificações web.");
+      } else {
+        const permission = await Notification.requestPermission();
+        if (permission === "granted") {
+          sendTestNotification(); // Mostra logo uma para testar
+        }
+      }
+    }
+
+    setSettings(prev => {
+      const newState = { ...prev, [key]: !prev[key] };
+      localStorage.setItem('notificationSettings', JSON.stringify(newState));
+      return newState;
+    });
   };
 
   const ToggleItem = ({ 
     label, 
     description, 
     enabled, 
-    onChange 
+    onChange,
+    isParentPaused = false,
+    isUnderDevelopment = false 
   }: { 
     label: string; 
     description: string; 
     enabled: boolean; 
     onChange: () => void;
+    isParentPaused?: boolean;
+    isUnderDevelopment?: boolean;
   }) => (
-    <div className="flex items-center justify-between p-4 hover:bg-white/5 transition-colors border-b border-gray-700/50 last:border-0">
+    <div className={`flex items-center justify-between p-4 transition-all duration-300 border-b border-gray-700/50 last:border-0 
+      ${(isParentPaused || isUnderDevelopment) ? 'opacity-30 grayscale-[0.8]' : 'opacity-100'}`}>
       <div className="flex-1">
         <h4 className="text-white font-medium">{label}</h4>
-        <p className="text-gray-400 text-sm mt-1">{description}</p>
+        {description && <p className="text-gray-400 text-xs mt-1">{description}</p>}
       </div>
       <button
-        onClick={onChange}
-        className={`relative w-12 h-6 rounded-full transition-colors ${
-          enabled ? 'bg-[#57F177]' : 'bg-gray-600'
-        }`}
+        onClick={(isParentPaused || isUnderDevelopment) ? undefined : onChange}
+        disabled={isParentPaused || isUnderDevelopment}
+        className={`relative w-12 h-6 rounded-full transition-all duration-300 ${
+          enabled && !isParentPaused && !isUnderDevelopment
+            ? 'bg-gradient-to-r from-[#57F177] to-[#4CB2D8]'
+            : 'bg-gray-600'
+        } ${isUnderDevelopment ? 'cursor-not-allowed' : ''}`}
       >
         <div
-          className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-transform ${
-            enabled ? 'translate-x-6' : 'translate-x-0.5'
+          className={`absolute top-0.5 w-5 h-5 bg-white rounded-full transition-all duration-300 ${
+            enabled && !isParentPaused && !isUnderDevelopment ? 'translate-x-6' : 'translate-x-0.5'
           }`}
         />
       </button>
@@ -91,110 +117,92 @@ export default function NotificationsPage() {
   );
 
   return (
-    <div className="min-h-screen pb-24" style={{ background: 'var(--background)' }}>
-      <HeaderDate />
-
-      <div className="px-6">
+    <div className="h-screen flex flex-col overflow-hidden" style={{ background: 'var(--background)' }}>
+      <div className="px-6 pt-6 overflow-y-auto pb-24">
         {/* Header */}
-        <div className="flex items-center gap-4 mb-6">
+        <div className="flex items-center gap-4 mb-8">
           <button
             onClick={() => router.back()}
             className="p-2 hover:bg-white/10 rounded-lg transition-colors"
           >
             <HiChevronLeft className="text-white" size={24} />
           </button>
-          <div className="flex items-center gap-3 flex-1">
-            <div className="bg-[#57F177]/20 p-3 rounded-xl">
-              <HiBell className="text-[#57F177]" size={24} />
-            </div>
-            <div>
-              <h1 className="text-white text-xl font-bold">Notificações</h1>
-              <p className="text-gray-400 text-sm">Configure as suas preferências</p>
-            </div>
-          </div>
+          <h1 className="text-white text-xl font-bold">Notificações</h1>
         </div>
 
-        {/* Configurações */}
         <div className="space-y-6">
-          {/* Lembretes de Tarefas */}
-          <div>
-            <h3 className="text-gray-400 text-sm font-medium mb-2 px-2">Lembretes de Tarefas</h3>
-            <div className="bg-[#1C3B4F]/30 border border-gray-700/50 rounded-2xl overflow-hidden">
-              <ToggleItem
-                label="Ativar Lembretes"
-                description="Receber notificações antes das tarefas"
-                enabled={settings.taskReminders}
-                onChange={() => handleToggle('taskReminders')}
+          {/* Secção Pausar Tudo */}
+          <div className="bg-red-500/10 border border-red-500/30 rounded-2xl overflow-hidden shadow-lg">
+             <ToggleItem
+                label="Desativar todas as notificações"
+                description="Silenciar avisos temporariamente"
+                enabled={settings.pauseAll}
+                onChange={() => handleToggle('pauseAll')}
               />
-              {settings.taskReminders && (
-                <>
-                  <ToggleItem
-                    label="15 minutos antes"
-                    description="Lembrete 15 minutos antes da tarefa"
-                    enabled={settings.taskBefore15min}
-                    onChange={() => handleToggle('taskBefore15min')}
-                  />
-                  <ToggleItem
-                    label="30 minutos antes"
-                    description="Lembrete 30 minutos antes da tarefa"
-                    enabled={settings.taskBefore30min}
-                    onChange={() => handleToggle('taskBefore30min')}
-                  />
-                  <ToggleItem
-                    label="1 hora antes"
-                    description="Lembrete 1 hora antes da tarefa"
-                    enabled={settings.taskBefore1hour}
-                    onChange={() => handleToggle('taskBefore1hour')}
-                  />
-                </>
-              )}
-            </div>
           </div>
 
-          {/* Resumos e Atualizações */}
-          <div>
-            <h3 className="text-gray-400 text-sm font-medium mb-2 px-2">Resumos e Atualizações</h3>
-            <div className="bg-[#1C3B4F]/30 border border-gray-700/50 rounded-2xl overflow-hidden">
-              <ToggleItem
-                label="Resumo Diário"
-                description="Resumo das tarefas do dia todas as manhãs"
-                enabled={settings.dailySummary}
-                onChange={() => handleToggle('dailySummary')}
-              />
-              <ToggleItem
-                label="Atualizações de Grupos"
-                description="Notificações sobre atividades em grupos"
-                enabled={settings.groupUpdates}
-                onChange={() => handleToggle('groupUpdates')}
-              />
-              <ToggleItem
-                label="Alterações de Eventos"
-                description="Avisos quando eventos são modificados"
-                enabled={settings.eventChanges}
-                onChange={() => handleToggle('eventChanges')}
-              />
+          <div className="space-y-6">
+            {/* Lembretes de Tarefas */}
+            <div>
+              <h3 className="text-gray-400 text-[10px] font-bold mb-2 px-2 uppercase tracking-[0.1em]">Lembretes de fim de Tarefas</h3>
+              <div className="bg-[#1C3B4F]/30 border border-gray-700/50 rounded-2xl overflow-hidden">
+                <ToggleItem
+                  label="Ativar Lembretes"
+                  description="Notificações antes do fim das tarefas"
+                  enabled={settings.taskReminders}
+                  onChange={() => handleToggle('taskReminders')}
+                  isParentPaused={settings.pauseAll}
+                />
+                {(settings.taskReminders && !settings.pauseAll) && (
+                  <div className="bg-black/20 transition-all duration-500 border-t border-gray-700/30">
+                    <ToggleItem
+                      label="15 minutos antes"
+                      description=""
+                      enabled={settings.taskBefore15min}
+                      onChange={() => handleToggle('taskBefore15min')}
+                    />
+                    <ToggleItem
+                      label="30 minutos antes"
+                      description=""
+                      enabled={settings.taskBefore30min}
+                      onChange={() => handleToggle('taskBefore30min')}
+                    />
+                    <ToggleItem
+                      label="1 hora antes"
+                      description=""
+                      enabled={settings.taskBefore1hour}
+                      onChange={() => handleToggle('taskBefore1hour')}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Outras Atualizações */}
+            <div>
+              <div className="flex justify-between items-center mb-2 px-2">
+                <h3 className="text-gray-500 text-[10px] font-bold uppercase tracking-[0.1em]">Outras Atualizações</h3>
+                <span className="text-[9px] bg-gray-700 text-gray-300 px-2 py-0.5 rounded-full font-bold">Brevemente</span>
+              </div>
+              <div className="bg-[#1C3B4F]/10 border border-gray-800 rounded-2xl overflow-hidden opacity-60">
+                <ToggleItem
+                  label="Resumo Diário"
+                  description="Tarefas do dia enviadas de manhã"
+                  enabled={false}
+                  onChange={() => {}}
+                  isUnderDevelopment={true}
+                />
+                <ToggleItem
+                  label="Atualizações de Grupos"
+                  description="Atividades nos teus grupos"
+                  enabled={false}
+                  onChange={() => {}}
+                  isUnderDevelopment={true}
+                />
+              </div>
             </div>
           </div>
         </div>
-
-        {/* Botão Guardar */}
-        <button
-          onClick={handleSave}
-          className={`w-full mt-8 rounded-xl py-4 font-bold transition-all flex items-center justify-center gap-2 ${
-            saved
-              ? 'bg-green-500/20 border-2 border-green-500 text-green-500'
-              : 'bg-gradient-to-r from-[#57F177] to-[#4CB2D8] text-white shadow-lg hover:opacity-90'
-          }`}
-        >
-          {saved ? (
-            <>
-              <HiCheckCircle size={24} />
-              Guardado!
-            </>
-          ) : (
-            'Guardar Preferências'
-          )}
-        </button>
       </div>
     </div>
   );
