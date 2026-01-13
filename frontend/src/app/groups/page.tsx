@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { HiUserGroup, HiPlus, HiXMark } from "react-icons/hi2";
 import ButtonAdd from '../components/ButtonAdd';
 import Modal from '../components/Modal';
-import HeaderDate from '../components/HeaderDate';
+import StickyHeaderDate from '../components/StickyHeaderDate';
 
 type Group = {
   id: string;
@@ -267,7 +267,7 @@ export default function GroupsPage() {
   return (
     <div className="min-h-screen pb-24" style={{ background: 'var(--background)' }}>
       {/* 1. Header Global com o Fade Suave */}
-      <HeaderDate />
+      <StickyHeaderDate />
 
       {/* 2. Resumo */}
       <div className="mx-6 bg-[#1C3B4F]/40 backdrop-blur-sm border border-gray-700/30 rounded-2xl p-6 mb-6 flex justify-between items-start shadow-md">

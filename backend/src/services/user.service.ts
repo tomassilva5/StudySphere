@@ -1,6 +1,6 @@
 import e from "express";
 import userDb from "../db/user.db";
-import { UserCreateDTO, UserLogin } from "../types/user.dto";
+import { UserCreateDTO, UserLogin, UserUpdate } from "../types/user.dto";
 export default {
     getAll(){
         return userDb.findAll()
@@ -35,7 +35,7 @@ export default {
     searchUsers(query: string){
         return userDb.searchUsers(query)
     },
-    editUser(data:UserCreateDTO){
+    editUser(data:UserUpdate){
         return userDb.edituser(data)
     }
 

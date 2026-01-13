@@ -1,5 +1,6 @@
 'use client';
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { useAuth } from './AuthContext';
 
 export type TaskType = 'Universidade' | 'Estudo Individual' | 'Estudo de Grupo' | 'Eventos Pessoais' | 'Lazer';
 export type TaskStatus = 'scheduled' | 'ongoing' | 'finished' | 'cancelled';
@@ -66,11 +67,14 @@ const TaskContext = createContext<TaskContextType | undefined>(undefined);
 export function TaskProvider({ children }: { children: ReactNode }) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
 
   // Usar caminho relativo para passar pelo proxy Next.js (igual ao AuthContext)
   const API_URL = '/api/v1';
 
   useEffect(() => {
+    // Só carregar tarefas se o utilizador estiver autenticado
+    if (isAuthLoading) return;
     const mapEventToTask = (evento: any): Task => {
       const startDate = new Date(evento.data_inicio);
       const endDate = new Date(evento.data_fim);
@@ -127,6 +131,12 @@ export function TaskProvider({ children }: { children: ReactNode }) {
 
     const fetchTasks = async () => {
       try {
+        // Se não estiver autenticado, não carregar tarefas
+        if (!isAuthenticated) {
+          setIsLoading(false);
+          return;
+        }
+
         let allTasks: Task[] = [];
 
         // Fetch regular events from database
@@ -138,6 +148,11 @@ export function TaskProvider({ children }: { children: ReactNode }) {
           if (eventsResponse.ok) {
             const eventos = await eventsResponse.json();
             allTasks = eventos.map(mapEventToTask);
+          } else if (eventsResponse.status === 401) {
+            console.log('Utilizador não autenticado');
+            setTasks([]);
+            setIsLoading(false);
+            return;
           }
         } catch (eventsError) {
           console.error('Erro ao carregar eventos:', eventsError);
@@ -169,7 +184,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     };
 
     fetchTasks();
-  }, [API_URL]);
+  }, [API_URL, isAuthenticated, isAuthLoading]);
 
   useEffect(() => {
     localStorage.setItem('tasks', JSON.stringify(tasks));

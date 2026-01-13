@@ -22,6 +22,9 @@ export default {
         calendarId as string | undefined
       );
       
+      // Sincronizar automaticamente com a base de dados
+      await googleCalendarService.syncEventsToDatabase(userId);
+      
       return res.status(200).json(events);
     } catch (error: any) {
       return res.status(500).json({ message: error.message });

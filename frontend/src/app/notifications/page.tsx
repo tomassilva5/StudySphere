@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { HiBell, HiChevronLeft, HiCheckCircle } from 'react-icons/hi2';
-import HeaderDate from '../components/HeaderDate';
+import StickyHeaderDate from '../components/StickyHeaderDate';
 
 type NotificationSettings = {
   taskReminders: boolean;
@@ -92,7 +92,7 @@ export default function NotificationsPage() {
 
   return (
     <div className="min-h-screen pb-24" style={{ background: 'var(--background)' }}>
-      <HeaderDate />
+      <StickyHeaderDate />
 
       <div className="px-6">
         {/* Header */}

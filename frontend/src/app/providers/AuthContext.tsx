@@ -5,6 +5,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 type User = {
   name: string;
   email: string;
+  username?: string;
 };
 
 type AuthContextType = {
@@ -85,7 +86,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       const identity = payload.email ?? payload.nome_utilizador ?? '';
-      const userData = { name: identity.split('@')[0], email: payload.email ?? `${payload.nome_utilizador}@local` };
+      const username = payload.nome_utilizador || (payload.email?.split('@')[0] || '');
+      const userData = { 
+        name: identity.split('@')[0], 
+        email: payload.email ?? `${payload.nome_utilizador}@local`,
+        username: username
+      };
       localStorage.setItem('userData', JSON.stringify(userData));
       setUser(userData);
       setIsAuthenticated(true);

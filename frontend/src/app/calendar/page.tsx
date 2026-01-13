@@ -1,9 +1,34 @@
 'use client';
 import { useRouter } from 'next/navigation';
 import { FiArrowLeft } from 'react-icons/fi';
+import { useEffect } from 'react';
 
 export default function CalendarPage() {
   const router = useRouter();
+  const API_URL = '/api/v1';
+
+  // Sincronização invisível ao utilizador
+  useEffect(() => {
+    const syncGoogle = async () => {
+      try {
+        await fetch(`${API_URL}/google/calendar/sync`, {
+          method: 'POST',
+          credentials: 'include',
+        });
+      } catch (error) {
+      }
+    };
+
+    // Sincronizar na primeira vez que a página carrega
+    syncGoogle();
+
+    // Sincronizar a cada 2 minutos em background
+    const interval = setInterval(() => {
+      syncGoogle();
+    }, 2 * 60 * 1000); // 2 minutos
+
+    return () => clearInterval(interval);
+  }, []);
 
   const handleGoBack = () => {
     router.back();
