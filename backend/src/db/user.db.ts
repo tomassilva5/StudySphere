@@ -1,5 +1,5 @@
 import {prisma} from "../lib/prisma";
-import { UserCreateDTO, UserLogin } from "../types/user.dto";
+import { UserCreateDTO, UserLogin, UserUpdate } from "../types/user.dto";
 import bcrypt from "bcryptjs";
 
 export default {
@@ -138,4 +138,18 @@ export default {
             where: { id },
         });
     },
+    async edituser(data: UserUpdate){
+        const user = await prisma.utilizador.findUnique({
+            where: { email: data.email },
+            select: { id: true },
+        });
+        const hashed_password = await bcrypt.hash(data.palavra_passe, 14);
+        return prisma.utilizador.update({
+            where: { id: user?.id },
+            data: {
+                palavra_passe: hashed_password,
+            },
+
+        });
+    }
 };

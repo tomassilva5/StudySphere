@@ -125,5 +125,15 @@ export default {
         } catch (error) {
             res.status(500).json({ message: "Error getting user" });
         }
+    },
+    async editUser(req: Request, res: Response){
+        try {
+            const data: UserCreateDTO = req.body;
+            data.nome_utilizador = req.user!.identity;
+            await userService.editUser(data);
+            res.status(200).json({ message: "User edited successfully" });
+        } catch (error) {
+            res.status(500).json({ message: "Error editing user" });
+        }
     }
 };
