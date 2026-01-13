@@ -20,6 +20,23 @@ export default {
         }
     },
 
+    async getGoogleStatus(req: Request, res: Response) {
+        try {
+            const userId = req.user!.id;
+            const user = await userService.getById(userId);
+            
+            if (!user) {
+                return res.status(404).json({ message: "User not found" });
+            }
+            
+            const hasGoogleToken = !!(user.google_access_token && user.google_refresh_token);
+            res.json({ connected: hasGoogleToken });
+        } catch (error) {
+            console.error('Error getting Google status:', error);
+            res.status(500).json({ message: "Error getting Google status" });
+        }
+    },
+
     async getAll(req: Request, res: Response) {
         try {
             const users = await userService.getAll();

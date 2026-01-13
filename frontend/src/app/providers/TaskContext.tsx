@@ -104,19 +104,61 @@ export function TaskProvider({ children }: { children: ReactNode }) {
       };
     };
 
+    const mapGoogleEventToTask = (gEvent: any): Task => {
+      const startDate = new Date(gEvent.start.dateTime || gEvent.start.date);
+      const endDate = new Date(gEvent.end.dateTime || gEvent.end.date);
+
+      return {
+        id: `google-${gEvent.id}`,
+        title: gEvent.summary || 'Sem título',
+        description: gEvent.description || '',
+        type: 'Eventos Pessoais',
+        startTime: startDate.toTimeString().slice(0, 5),
+        endTime: endDate.toTimeString().slice(0, 5),
+        date: startDate.toISOString().split('T')[0],
+        duration: calculateDuration(startDate.toTimeString().slice(0, 5), endDate.toTimeString().slice(0, 5)),
+        completed: false,
+        priority: 'MEDIUM',
+        status: 'scheduled',
+        startDate,
+        endDate,
+      };
+    };
+
     const fetchTasks = async () => {
       try {
-        const response = await fetch(`${API_URL}/events/today`, {
-          credentials: 'include',
-        });
+        let allTasks: Task[] = [];
 
-        if (response.ok) {
-          const eventos = await response.json();
-          setTasks(eventos.map(mapEventToTask));
-        } else {
-          const stored = localStorage.getItem('tasks');
-          if (stored) setTasks(JSON.parse(stored));
+        // Fetch regular events from database
+        try {
+          const eventsResponse = await fetch(`${API_URL}/events/today`, {
+            credentials: 'include',
+          });
+
+          if (eventsResponse.ok) {
+            const eventos = await eventsResponse.json();
+            allTasks = eventos.map(mapEventToTask);
+          }
+        } catch (eventsError) {
+          console.error('Erro ao carregar eventos:', eventsError);
         }
+
+        // Try to fetch Google Calendar events (will fail gracefully if not connected)
+        try {
+          const googleResponse = await fetch(`${API_URL}/google/calendar/events`, {
+            credentials: 'include',
+          });
+
+          if (googleResponse.ok) {
+            const googleEvents = await googleResponse.json();
+            const googleTasks = googleEvents.map(mapGoogleEventToTask);
+            allTasks = [...allTasks, ...googleTasks];
+          }
+        } catch (googleError) {
+          console.log('Google Calendar não conectado ou erro ao carregar eventos');
+        }
+
+        setTasks(allTasks);
       } catch (error) {
         console.error('Erro ao carregar tarefas:', error);
         const stored = localStorage.getItem('tasks');
@@ -187,6 +229,12 @@ export function TaskProvider({ children }: { children: ReactNode }) {
   };
 
   const removeTask = async (id: string) => {
+    // Don't allow deleting Google Calendar events
+    if (id.startsWith('google-')) {
+      console.warn('Cannot delete Google Calendar events from this interface');
+      return;
+    }
+
     try {
       const response = await fetch(`${API_URL}/events/${id}`, {
         method: 'DELETE',
@@ -204,6 +252,11 @@ export function TaskProvider({ children }: { children: ReactNode }) {
   };
 
   const toggleTask = (id: string) => {
+    // Don't allow toggling Google Calendar events
+    if (id.startsWith('google-')) {
+      return;
+    }
+
     setTasks(tasks.map(t =>
       t.id === id
         ? { ...t, completed: !t.completed, status: !t.completed ? 'finished' : 'scheduled' }

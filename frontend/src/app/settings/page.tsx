@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/providers/AuthContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { 
   HiUser, HiBell, HiGlobeAlt, HiChevronRight, 
-  HiCalendar, HiCog, HiArrowRightOnRectangle 
+  HiCalendar, HiCog, HiArrowRightOnRectangle, HiCheckCircle 
 } from "react-icons/hi2";
 
 import Modal from '../components/Modal';
@@ -15,14 +15,45 @@ import InputField from '../components/InputField';
 export default function Settings() {
   const { logout, user } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isCalendarModalOpen, setIsCalendarModalOpen] = useState(false);
+  const [googleConnected, setGoogleConnected] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const [syncSuccess, setSyncSuccess] = useState(false);
 
   const [name, setName] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (searchParams.get('googleConnected') === 'true') {
+      setGoogleConnected(true);
+      setSyncSuccess(true);
+      setTimeout(() => setSyncSuccess(false), 3000);
+    }
+    
+    // Check Google connection status on page load
+    const checkGoogleStatus = async () => {
+      try {
+        const response = await fetch('/api/v1/users/google-status', {
+          credentials: 'include',
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setGoogleConnected(data.connected);
+        }
+      } catch (error) {
+        console.error('Error checking Google status:', error);
+      }
+    };
+    
+    checkGoogleStatus();
+  }, [searchParams]);
 
   useEffect(() => {
     if (isEditModalOpen && user) {
@@ -40,6 +71,34 @@ export default function Settings() {
       return;
     }
     setIsEditModalOpen(false);
+  };
+
+  const handleConnectGoogle = async () => {
+    // Usar o proxy do Next.js para manter os cookies
+    window.location.href = '/api/v1/auth/google/auth';
+  };
+
+  const handleSyncCalendar = async () => {
+    setSyncing(true);
+    try {
+      const response = await fetch('/api/v1/google/calendar/sync', {
+        method: 'POST',
+        credentials: 'include', // Importante: envia cookies httpOnly
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        setSyncSuccess(true);
+        setTimeout(() => setSyncSuccess(false), 3000);
+        alert(` ${data.message}`);
+      } else {
+        alert(' Erro ao sincronizar calendário');
+      }
+    } catch (error) {
+      alert(' Erro ao sincronizar calendário');
+    } finally {
+      setSyncing(false);
+    }
   };
 
   const SettingItem = ({ icon: Icon, label, onClick, color = "text-white" }: {
@@ -90,11 +149,23 @@ export default function Settings() {
           <div>
             <h3 className="text-gray-400 text-sm font-medium mb-2 px-2">Definições</h3>
             <div className="bg-[#1C3B4F]/30 border border-gray-700/50 rounded-2xl overflow-hidden">
-              <SettingItem icon={HiCalendar} label="Sincronizar Calendários" color="text-[#6EE7B7]" />
+              <SettingItem 
+                icon={HiCalendar} 
+                label={googleConnected ? "Sincronizar Calendários ✓" : "Sincronizar Calendários"} 
+                color={googleConnected ? "text-[#57F177]" : "text-[#6EE7B7]"}
+                onClick={() => setIsCalendarModalOpen(true)} 
+              />
               <SettingItem icon={HiCog} label="Preferências da aplicação" color="text-[#6EE7B7]" />
             </div>
           </div>
         </div>
+
+        {syncSuccess && (
+          <div className="fixed top-20 left-1/2 transform -translate-x-1/2 bg-[#57F177] text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 animate-bounce z-50">
+            <HiCheckCircle size={24} />
+            <span className="font-bold">Calendário sincronizado!</span>
+          </div>
+        )}
 
         <button 
           onClick={() => setIsLogoutModalOpen(true)}
@@ -162,6 +233,48 @@ export default function Settings() {
                 className="w-full rounded-xl border-2 border-[#6EE7B7] py-3 text-[#6EE7B7] font-bold uppercase tracking-wide hover:bg-[#6EE7B7]/10 transition-all"
               >
                 Cancelar
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {isCalendarModalOpen && (
+        <Modal onClose={() => setIsCalendarModalOpen(false)}>
+          <div className="text-center">
+            <div className="bg-[#6EE7B7]/20 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <HiCalendar className="text-[#6EE7B7]" size={32} />
+            </div>
+            <h3 className="text-white text-xl font-bold mb-2">Sincronizar Google Calendar</h3>
+            <p className="text-gray-400 mb-6 text-sm px-2">
+              {googleConnected 
+                ? 'A sua conta Google está conectada. Os eventos sincronizam automaticamente.'
+                : 'Conecte a sua conta Google para importar eventos do Google Calendar.'}
+            </p>
+            <div className="flex flex-col gap-3">
+              {!googleConnected && (
+                <button 
+                  onClick={handleConnectGoogle}
+                  className="w-full rounded-xl py-3.5 text-base font-bold text-white shadow-lg bg-gradient-to-r from-[#57F177] to-[#4CB2D8] hover:opacity-90 transition-all"
+                >
+                  Conectar com Google
+                </button>
+              )}
+              {googleConnected && (
+                <div className="bg-green-500/10 border border-green-500/50 rounded-xl p-4 flex items-center gap-3">
+                  <HiCheckCircle className="text-green-500" size={24} />
+                  <div className="text-left flex-1">
+                    <p className="text-green-500 font-bold text-sm">Conectado</p>
+                    <p className="text-gray-400 text-xs">Eventos sincronizam automaticamente</p>
+                  </div>
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={() => setIsCalendarModalOpen(false)}
+                className="w-full rounded-xl border-2 border-[#6EE7B7] py-3 text-[#6EE7B7] font-bold uppercase tracking-wide hover:bg-[#6EE7B7]/10 transition-all"
+              >
+                Fechar
               </button>
             </div>
           </div>
