@@ -53,14 +53,16 @@ export default function BottomTabs() {
             <Link
               key={tab.href}
               href={tab.href}
-              className="flex flex-col items-center justify-center h-full flex-1"
+              className="flex flex-col items-center justify-center h-full flex-1 transition-all duration-300"
             >
-              <Icon 
-                className="text-3xl transition-all duration-300" 
-                style={{ 
-                  fill: isActive ? 'url(#tab-fade-gradient)' : '#9CA3AF',
-                }} 
-              />
+              <div className={`p-2 rounded-lg flex items-center justify-center transition-all duration-300 ${isActive ? 'bg-gray-800/50' : ''}`}>
+                <Icon 
+                  size={24}
+                  style={{ 
+                    fill: isActive ? 'url(#blue-green-gradient)' : '#9CA3AF',
+                  }} 
+                />
+              </div>
             </Link>
           );
         })}

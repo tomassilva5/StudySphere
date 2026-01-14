@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { FiCheckSquare, FiClock, FiTrash2, FiEdit2 } from 'react-icons/fi';
+import { FiCheckSquare, FiClock, FiTrash2, FiEdit2, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { useTasks, TaskType, TaskPriority, TaskStatus, type Task } from '@/app/providers/TaskContext';
 import { useUI } from '@/app/providers/UIContext';
 
@@ -282,6 +282,7 @@ export default function TasksPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [selectedFilter, setSelectedFilter] = useState<TaskType | 'Todas'>('Todas');
   const [taskToDelete, setTaskToDelete] = useState<Task | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
 
   // Controlar visibilidade do BottomTabs quando modal abre/fecha
   useEffect(() => {
@@ -328,10 +329,27 @@ export default function TasksPage() {
     setTaskToDelete(null);
   };
 
-  // Filtrar tarefas baseado no filtro selecionado
+  const goToPreviousDay = () => {
+    const newDate = new Date(selectedDate);
+    newDate.setDate(newDate.getDate() - 1);
+    setSelectedDate(newDate);
+  };
+
+  const goToNextDay = () => {
+    const newDate = new Date(selectedDate);
+    newDate.setDate(newDate.getDate() + 1);
+    setSelectedDate(newDate);
+  };
+
+  // Filtrar tarefas baseado no dia selecionado e no filtro de tipo
+  const tasksForSelectedDate = tasks.filter(task => {
+    const taskDate = new Date(task.date);
+    return taskDate.toDateString() === selectedDate.toDateString();
+  });
+
   const filteredTasks = selectedFilter === 'Todas' 
-    ? tasks 
-    : tasks.filter(task => task.type === selectedFilter);
+    ? tasksForSelectedDate 
+    : tasksForSelectedDate.filter(task => task.type === selectedFilter);
 
   const groupedTasks = filteredTasks.reduce<Record<TaskType, Task[]>>((acc, task) => {
     if (!acc[task.type]) acc[task.type] = [];
@@ -349,44 +367,72 @@ export default function TasksPage() {
       {/* 3. SUBSTITUIÇÃO DA DATA MANUAL PELO COMPONENTE GLOBAL */}
       <StickyHeaderDate />
 
-      {/* Filtros / Tabs (sticky abaixo do cabeçalho) */}
-      <div className="sticky top-20 z-20 bg-linear-to-r from-[#06141F] via-[#06141F] to-transparent px-4 py-2 mb-4">
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide" role="tablist">
-        {/* Botão "Todas" */}
-        <button
-          onClick={() => setSelectedFilter('Todas')}
-          className={`px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider shadow-sm transition-all whitespace-nowrap ${
-            selectedFilter === 'Todas' 
-              ? 'bg-linear-to-r from-[#57F177] to-[#4CB2D8] text-[#06141F]' 
-              : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
-          }`}
-          role="tab"
-          aria-selected={selectedFilter === 'Todas'}
-        >
-          Todas ({tasks.length})
-        </button>
-        
-        {/* Botões de filtro por tipo */}
-        {Object.entries(typeColors).map(([key, color]) => {
-          const taskCount = tasks.filter(t => t.type === key).length;
-          const isSelected = selectedFilter === key;
+      {/* Container fixo para filtros, seletor de data e botão */}
+      <div className="sticky top-14 z-30 pb-2" style={{ background: 'var(--background)' }}>
+        {/* Filtros / Tabs */}
+        <div className="flex px-4 gap-2 mb-3 overflow-x-auto pb-2 scrollbar-hide pt-2" role="tablist">
+          {/* Botão "Todas" */}
+          <button
+            onClick={() => setSelectedFilter('Todas')}
+            className={`px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider shadow-sm transition-all whitespace-nowrap ${
+              selectedFilter === 'Todas' 
+                ? 'bg-gradient-to-r from-[#57F177] to-[#4CB2D8] text-[#06141F]' 
+                : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+            }`}
+            role="tab"
+            aria-selected={selectedFilter === 'Todas'}
+          >
+            Todas ({tasksForSelectedDate.length})
+          </button>
           
-          return (
+          {/* Botões de filtro por tipo */}
+          {Object.entries(typeColors).map(([key, color]) => {
+            const taskCount = tasksForSelectedDate.filter(t => t.type === key).length;
+            const isSelected = selectedFilter === key;
+            
+            return (
+              <button
+                key={key}
+                onClick={() => setSelectedFilter(key as TaskType)}
+                className={`px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider shadow-sm transition-all whitespace-nowrap ${
+                  isSelected 
+                    ? `${color} text-white ring-2 ring-white/50` 
+                    : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
+                }`}
+                role="tab"
+                aria-selected={isSelected}
+              >
+                {typeLabels[key as TaskType]} ({taskCount})
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Seletor de Dia */}
+        <div className="px-4 mb-2">
+          <div className="bg-[#1C3B4F]/50 backdrop-blur-sm border border-gray-700/50 rounded-xl p-3 flex items-center justify-between">
             <button
-              key={key}
-              onClick={() => setSelectedFilter(key as TaskType)}
-              className={`px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider shadow-sm transition-all whitespace-nowrap ${
-                isSelected 
-                  ? `${color} text-white ring-2 ring-white/50` 
-                  : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
-              }`}
-              role="tab"
-              aria-selected={isSelected}
+              onClick={goToPreviousDay}
+              className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
+              aria-label="Dia anterior"
             >
-              {typeLabels[key as TaskType]} ({taskCount})
+              <FiChevronLeft className="text-white text-lg" />
             </button>
-          );
-        })}
+            
+            <div className="text-center flex-1">
+              <p className="text-white font-bold text-base">
+                {new Intl.DateTimeFormat('pt-PT', { day: 'numeric', month: 'long' }).format(selectedDate)}
+              </p>
+            </div>
+            
+            <button
+              onClick={goToNextDay}
+              className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
+              aria-label="Próximo dia"
+            >
+              <FiChevronRight className="text-white text-lg" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -437,9 +483,9 @@ export default function TasksPage() {
             <h3 className="text-white text-xl font-bold mb-2">Apagar Tarefa?</h3>
             <p className="text-gray-400 mb-8 text-sm px-2">Tem a certeza que deseja apagar "{taskToDelete.title}"?</p>
             <div className="flex flex-col gap-3">
-              <button
-                onClick={handleConfirmDelete}
-                className="w-full rounded-xl py-3.5 text-base font-bold text-white shadow-lg bg-red-500 hover:bg-red-600 transition-all"
+              <button 
+                onClick={handleConfirmDelete} 
+                className="w-full rounded-xl py-3.5 text-base font-bold text-red-500 shadow-lg bg-red-500/10 border border-red-500/50 hover:bg-red-500/20 transition-all"
               >
                 Sim, apagar tarefa
               </button>
