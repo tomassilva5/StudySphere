@@ -55,7 +55,7 @@ export default function RegisterPage() {
         const timeout = setTimeout(async () => {
             setIsChecking(prev => ({ ...prev, username: true }));
             try {
-                const res = await fetch(`http://localhost:3000/api/v1/auth/check-availability?username=${username}`);
+                const res = await fetch(`https://studysphere-backend-latest.onrender.com/api/v1/auth/check-availability?username=${username}`);
                 const data = await res.json();
                 setIsUsernameAvailable(data.available);
             } catch (err) {
@@ -75,7 +75,7 @@ export default function RegisterPage() {
         const timeout = setTimeout(async () => {
             setIsChecking(prev => ({ ...prev, email: true }));
             try {
-                const res = await fetch(`http://localhost:3000/api/v1/auth/check-availability?email=${email}`);
+                const res = await fetch(`/api/v1/auth/check-availability?email=${email}`);
                 const data = await res.json();
                 setIsEmailAvailable(data.available);
             } catch (err) {
