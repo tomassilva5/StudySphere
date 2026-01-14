@@ -224,7 +224,7 @@ function AddTaskForm({
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="w-full p-2.5 rounded-lg bg-zinc-800 text-white [color-scheme:dark] border border-zinc-700 outline-none"
+            className="w-full p-2.5 rounded-lg bg-zinc-800 text-white border border-zinc-700 outline-none"
             required
           />
         </div>
@@ -264,7 +264,7 @@ function AddTaskForm({
           </button>
           <button
             type="submit"
-            className="px-6 py-2 rounded-lg bg-gradient-to-br from-[#57F177] to-[#4CB2D8] text-[#06141F] font-bold text-sm shadow-lg active:scale-95 transition-all"
+            className="px-6 py-2 rounded-lg bg-linear-to-r from-[#57F177] to-[#4CB2D8] text-[#06141F] font-bold text-sm shadow-lg active:scale-95 transition-all"
           >
             Adicionar
           </button>
