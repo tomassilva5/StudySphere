@@ -14,8 +14,22 @@ app.use(express.json())
 app.use(cookieParser())
 
 // Allow the frontend origin and cookies for session auth
+const allowedOrigins = [
+  'https://study-sphere-idea.vercel.app',
+  'http://localhost:5000',
+  'http://localhost:3000'
+];
+
 app.use(cors({
-  origin: FRONTEND_URL || '*',
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl)
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
 }))
 
@@ -25,8 +39,9 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: FRONTEND_URL || '*',
-    credentials: true, 
+    origin: allowedOrigins,
+    credentials: true,
+    methods: ["GET", "POST"]
   }
 });
 
