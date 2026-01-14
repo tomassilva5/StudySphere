@@ -224,7 +224,7 @@ function AddTaskForm({
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="w-full p-2.5 rounded-lg bg-zinc-800 text-white [color-scheme:dark] border border-zinc-700 outline-none"
+            className="w-full p-2.5 rounded-lg bg-zinc-800 text-white border border-zinc-700 outline-none"
             required
           />
         </div>
@@ -264,7 +264,7 @@ function AddTaskForm({
           </button>
           <button
             type="submit"
-            className="px-6 py-2 rounded-lg bg-gradient-to-br from-[#57F177] to-[#4CB2D8] text-[#06141F] font-bold text-sm shadow-lg active:scale-95 transition-all"
+            className="px-6 py-2 rounded-lg bg-linear-to-r from-[#57F177] to-[#4CB2D8] text-[#06141F] font-bold text-sm shadow-lg active:scale-95 transition-all"
           >
             Adicionar
           </button>
@@ -349,14 +349,15 @@ export default function TasksPage() {
       {/* 3. SUBSTITUIÇÃO DA DATA MANUAL PELO COMPONENTE GLOBAL */}
       <StickyHeaderDate />
 
-      {/* Filtros / Tabs */}
-      <div className="flex px-4 gap-2 mb-4 overflow-x-auto pb-2 scrollbar-hide" role="tablist">
+      {/* Filtros / Tabs (sticky abaixo do cabeçalho) */}
+      <div className="sticky top-20 z-20 bg-linear-to-r from-[#06141F] via-[#06141F] to-transparent px-4 py-2 mb-4">
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-hide" role="tablist">
         {/* Botão "Todas" */}
         <button
           onClick={() => setSelectedFilter('Todas')}
           className={`px-4 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider shadow-sm transition-all whitespace-nowrap ${
             selectedFilter === 'Todas' 
-              ? 'bg-gradient-to-r from-[#57F177] to-[#4CB2D8] text-[#06141F]' 
+              ? 'bg-linear-to-r from-[#57F177] to-[#4CB2D8] text-[#06141F]' 
               : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'
           }`}
           role="tab"
@@ -386,6 +387,7 @@ export default function TasksPage() {
             </button>
           );
         })}
+        </div>
       </div>
 
       {/* Lista de Tarefas */}
