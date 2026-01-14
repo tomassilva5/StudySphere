@@ -14,23 +14,32 @@ app.use(express.json())
 app.use(cookieParser())
 
 // Allow the frontend origin and cookies for session auth
-const allowedOrigins = [
+const baseAllowedOrigins = [
   'https://study-sphere-idea.vercel.app',
   'http://localhost:5000',
-  'http://localhost:3000'
-];
+  'http://localhost:3000',
+  FRONTEND_URL?.replace(/\/$/, '') || undefined,
+].filter(Boolean) as string[];
+
+const isAllowedOrigin = (origin?: string | null) => {
+  if (!origin) return true; // allow non-browser clients
+  const cleaned = origin.replace(/\/$/, '');
+  if (baseAllowedOrigins.includes(cleaned)) return true;
+  // allow any vercel preview/production domains
+  try {
+    const hostname = new URL(cleaned).hostname;
+    if (/\.vercel\.app$/i.test(hostname)) return true;
+  } catch (err) {
+    console.warn('Invalid origin format', origin, err);
+  }
+  return false;
+};
 
 app.use(cors({
   origin: function(origin, callback) {
-    // Allow requests with no origin (like mobile apps, curl, or same-origin)
-    if (!origin) return callback(null, true);
-    // Allow all origins in the list, or any origin if not in list (for flexibility)
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    // Allow anyway but log it
-    console.log('CORS request from unlisted origin:', origin);
-    return callback(null, true);
+    if (isAllowedOrigin(origin)) return callback(null, true);
+    console.warn('Blocked CORS origin:', origin);
+    return callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
 }))
@@ -41,7 +50,11 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
+    origin: function(origin, callback) {
+      if (isAllowedOrigin(origin)) return callback(null, true);
+      console.warn('Blocked Socket.io origin:', origin);
+      return callback(new Error('Not allowed by CORS for socket'));
+    },
     credentials: true,
     methods: ["GET", "POST"]
   }
