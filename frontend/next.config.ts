@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/api/v1/:path*',
-        destination: 'http://backend:3000/api/v1/:path*',
+        destination: 'https://studysphere-backend-latest.onrender.com/api/v1/:path*',
       },
     ];
   },
