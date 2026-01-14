@@ -53,7 +53,8 @@ function SettingsContent() {
     // Check Google connection status on page load
     const checkGoogleStatus = async () => {
       try {
-        const response = await fetch('/api/v1/users/google-status', {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+        const response = await fetch(`${apiUrl}/api/v1/users/google-status`, {
           credentials: 'include',
         });
         
@@ -99,7 +100,8 @@ function SettingsContent() {
         palavra_passe: password || undefined,
       };
 
-      const response = await fetch('/api/v1/users/edit', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+      const response = await fetch(`${apiUrl}/api/v1/users/edit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -123,14 +125,15 @@ function SettingsContent() {
   };
 
   const handleConnectGoogle = async () => {
-    // Usar o proxy do Next.js para manter os cookies
-    window.location.href = '/api/v1/auth/google/auth';
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+    window.location.href = `${apiUrl}/api/v1/auth/google/auth`;
   };
 
   const handleSyncCalendar = async () => {
     setSyncing(true);
     try {
-      const response = await fetch('/api/v1/google/calendar/sync', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+      const response = await fetch(`${apiUrl}/api/v1/google/calendar/sync`, {
         method: 'POST',
         credentials: 'include', // Importante: envia cookies httpOnly
       });

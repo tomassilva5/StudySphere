@@ -5,13 +5,13 @@ import { useEffect } from 'react';
 
 export default function CalendarPage() {
   const router = useRouter();
-  const API_URL = '/api/v1';
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
   // Sincronização invisível ao utilizador
   useEffect(() => {
     const syncGoogle = async () => {
       try {
-        await fetch(`${API_URL}/google/calendar/sync`, {
+        await fetch(`${API_URL}/api/v1/google/calendar/sync`, {
           method: 'POST',
           credentials: 'include',
         });
