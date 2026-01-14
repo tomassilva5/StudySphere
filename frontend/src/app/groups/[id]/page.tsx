@@ -317,7 +317,6 @@ export default function GroupDetailPage() {
         data_inicio: taskData.data_inicio,
         data_fim: taskData.data_fim,
         e_virtual: false,
-        prioridade: taskData.prioridade || 'MEDIA',
         categoria: 'Estudo_Grupo',
         estado: 'agendado',
         grupo_id: groupId
@@ -645,7 +644,7 @@ function AddTaskForm({ onClose, onCreate }: { onClose: () => void, onCreate: (da
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [startTime, setStartTime] = useState('09:00');
   const [endTime, setEndTime] = useState('10:00');
-  const [prioridade, setPrioridade] = useState('MEDIA');
+  
 
   const parseTime = (time: string) => {
     const [hours, minutes] = time.split(':').map(Number);
@@ -671,7 +670,7 @@ function AddTaskForm({ onClose, onCreate }: { onClose: () => void, onCreate: (da
       descricao,
       data_inicio: dataInicio.toISOString(),
       data_fim: dataFim.toISOString(),
-      prioridade,
+      // prioridade removed
     });
     setTitulo('');
     setDescricao('');
@@ -705,19 +704,7 @@ function AddTaskForm({ onClose, onCreate }: { onClose: () => void, onCreate: (da
             placeholder="Ex: Criar slides sobre o tema do projeto"
           />
         </div>
-        <div>
-          <label className="block text-white mb-2 text-sm">Prioridade</label>
-          <select
-            value={prioridade}
-            onChange={(e) => setPrioridade(e.target.value)}
-            className="w-full p-2.5 rounded-lg bg-zinc-800 text-white border border-zinc-700 outline-none"
-            required
-          >
-            <option value="BAIXA">Baixa</option>
-            <option value="MEDIA">Média</option>
-            <option value="ALTA">Alta</option>
-          </select>
-        </div>
+        {/* Prioridade removed for group task form */}
         <div>
           <label className="block text-white mb-2 text-sm">Data</label>
           <input

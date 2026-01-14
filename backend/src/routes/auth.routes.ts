@@ -17,8 +17,6 @@ router.post("/register", userController.create);
 router.post("/login", async (req:Request, res:Response) => {
     const data: UserLogin = req.body;
 
-  console.log('[AUTH] /login payload:', JSON.stringify(data));
-
     if ((!data.nome_utilizador && !data.email) || (data.nome_utilizador && data.email)) {
       return res.status(400).json({ message: "Provide username OR email" });
     }

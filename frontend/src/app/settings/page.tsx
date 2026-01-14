@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useAuth } from '@/app/providers/AuthContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { 
@@ -12,7 +12,7 @@ import Modal from '../components/Modal';
 import StickyHeaderDate from '../components/StickyHeaderDate';
 import InputField from '../components/InputField';
 
-export default function Settings() {
+function SettingsContent() {
   const { logout, user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -363,5 +363,17 @@ export default function Settings() {
         </Modal>
       )}
     </div>
+  );
+}
+
+export default function Settings() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen pb-24 flex items-center justify-center" style={{ background: 'var(--background)' }}>
+        <div className="text-gray-400">A carregar...</div>
+      </div>
+    }>
+      <SettingsContent />
+    </Suspense>
   );
 }
