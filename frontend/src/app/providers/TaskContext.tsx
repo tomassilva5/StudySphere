@@ -69,8 +69,8 @@ export function TaskProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const { isAuthenticated, isLoading: isAuthLoading } = useAuth();
 
-  // Usar caminho relativo para passar pelo proxy Next.js (igual ao AuthContext)
-  const API_URL = '/api/v1';
+  // Usar URL da API via variável de ambiente
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
   useEffect(() => {
     // Só carregar tarefas se o utilizador estiver autenticado
@@ -141,7 +141,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
 
         // Fetch regular events from database
         try {
-          const eventsResponse = await fetch(`${API_URL}/events/today`, {
+          const eventsResponse = await fetch(`${API_URL}/api/v1/events/today`, {
             credentials: 'include',
           });
 
@@ -160,7 +160,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
 
         // Try to fetch Google Calendar events (will fail gracefully if not connected)
         try {
-          const googleResponse = await fetch(`${API_URL}/google/calendar/events`, {
+          const googleResponse = await fetch(`${API_URL}/api/v1/google/calendar/events`, {
             credentials: 'include',
           });
 
@@ -227,7 +227,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
         estado: taskStatusToBackend(task.status),
       };
       
-      const response = await fetch(`${API_URL}/events`, {
+      const response = await fetch(`${API_URL}/api/v1/events`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -251,7 +251,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
     }
 
     try {
-      const response = await fetch(`${API_URL}/events/${id}`, {
+      const response = await fetch(`${API_URL}/api/v1/events/${id}`, {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -293,7 +293,7 @@ export function TaskProvider({ children }: { children: ReactNode }) {
         estado: taskStatusToBackend(merged.status),
       };
 
-      const response = await fetch(`${API_URL}/events/${id}`, {
+      const response = await fetch(`${API_URL}/api/v1/events/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

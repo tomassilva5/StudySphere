@@ -41,7 +41,8 @@ function AddGroupForm({ onClose, onCreate }: { onClose: () => void, onCreate: (d
     try {
       // Validar se o utilizador existe
       console.log('[VALIDATION] Searching for user:', userToAdd);
-      const response = await fetch(`/api/v1/users/search?q=${encodeURIComponent(userToAdd)}`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+      const response = await fetch(`${apiUrl}/api/v1/users/search?q=${encodeURIComponent(userToAdd)}`, {
         credentials: 'include',
       });
 
@@ -177,7 +178,8 @@ export default function GroupsPage() {
   useEffect(() => {
     const fetchGroups = async () => {
       try {
-        const response = await fetch('/api/v1/groups', {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+        const response = await fetch(`${apiUrl}/api/v1/groups`, {
           credentials: 'include',
         });
 
@@ -227,7 +229,8 @@ export default function GroupsPage() {
         membrosNomeUtilizador: data.members
       };
 
-      const response = await fetch('/api/v1/groups', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+      const response = await fetch(`${apiUrl}/api/v1/groups`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

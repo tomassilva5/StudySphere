@@ -24,8 +24,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
 
-  // URL base do backend - agora usa proxy do Next.js na mesma origem
-  const API_URL = '/api/v1';
+  // URL base do backend - usa variável de ambiente
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
   useEffect(() => {
     const checkSession = async () => {
