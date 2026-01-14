@@ -324,6 +324,8 @@ export default function GroupDetailPage() {
         data_inicio: taskData.data_inicio,
         data_fim: taskData.data_fim,
         e_virtual: false,
+        // Prioridade é obrigatória no schema Prisma
+        prioridade: 'MEDIA',
         categoria: 'Estudo_Grupo',
         estado: 'agendado',
         grupo_id: groupId
