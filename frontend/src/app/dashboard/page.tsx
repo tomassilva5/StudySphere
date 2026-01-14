@@ -14,7 +14,8 @@ type TimeDistributionProps = {
 };
 
 export default function Dashboard() {
-  const [calendarDate] = useState<Date>(new Date());
+  const [calendarDate, setCalendarDate] = useState<Date>(new Date());
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const router = useRouter();
   const { tasks } = useTasks();
   const { isAuthenticated, isLoading } = useAuth();
@@ -48,8 +49,10 @@ export default function Dashboard() {
     const categoryTimes: Record<string, number> = {};
     categories.forEach(c => categoryTimes[c.type] = 0);
 
+    // Filtrar tarefas do dia selecionado
     tasks.forEach(task => {
-      if (categoryTimes[task.type] !== undefined) {
+      const taskDate = new Date(task.date);
+      if (taskDate.toDateString() === selectedDate.toDateString() && categoryTimes[task.type] !== undefined) {
         categoryTimes[task.type] += task.duration || 0;
       }
     });
@@ -69,7 +72,7 @@ export default function Dashboard() {
       color: c.color,
       width: `${totalTime > 0 ? (categoryTimes[c.type] / Math.max(totalTime, 24)) * 100 : 0}%`,
     })));
-  }, [tasks]);
+  }, [tasks, selectedDate]);
 
   const renderDays = () => {
     const year = calendarDate.getFullYear();
@@ -80,15 +83,24 @@ export default function Dashboard() {
 
     for (let i = 0; i < firstDay; i++) days.push(<div key={`e-${i}`} />);
     for (let i = 1; i <= daysInMonth; i++) {
+      const currentDate = new Date(year, month, i);
       const isToday = i === new Date().getDate() && month === new Date().getMonth();
+      const isSelected = currentDate.toDateString() === selectedDate.toDateString();
+      
       days.push(
-        <div key={i} className={`p-2 text-center rounded-lg text-sm transition-all ${
-          isToday 
-            ? 'bg-gradient-to-br from-[#57F177] to-[#4CB2D8] text-[#06141F] font-bold shadow-lg shadow-[#57F177]/20' 
-            : 'text-gray-300 hover:bg-white/5'
-        }`}>
+        <button
+          key={i}
+          onClick={() => setSelectedDate(currentDate)}
+          className={`p-2 text-center rounded-lg text-sm transition-all ${
+            isSelected
+              ? 'bg-gradient-to-br from-[#57F177] to-[#4CB2D8] text-[#06141F] font-bold shadow-lg shadow-[#57F177]/20' 
+              : isToday 
+              ? 'bg-white/10 text-white font-bold'
+              : 'text-gray-300 hover:bg-white/5'
+          }`}
+        >
           {i}
-        </div>
+        </button>
       );
     }
     return days;
@@ -129,7 +141,12 @@ export default function Dashboard() {
 
         {/* Bloco Distribuição */}
         <div className="bg-[#1C3B4F]/50 backdrop-blur-md rounded-2xl p-5 border border-white/5 shadow-xl">
-          <h2 className="text-xl font-bold text-white mb-6">Distribuição de Tempo (Hoje)</h2>
+          <div className="text-center mb-6">
+            <h2 className="text-xl font-bold text-white">Distribuição de Tempo</h2>
+            <p className="text-white/70 text-sm mt-1">
+              {new Intl.DateTimeFormat('pt-PT', { day: 'numeric', month: 'long' }).format(selectedDate)}
+            </p>
+          </div>
           <div className="space-y-5">
             {timeDistribution.map((item, index) => (
               <div key={index}>

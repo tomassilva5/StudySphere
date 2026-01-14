@@ -54,6 +54,14 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
           min-h-screen
         `}
       >
+        <svg width="0" height="0" className="absolute pointer-events-none">
+          <defs>
+            <linearGradient id="blue-green-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop stopColor="#57F177" offset="0%" />
+              <stop stopColor="#4CB2D8" offset="100%" />
+            </linearGradient>
+          </defs>
+        </svg>
         <AuthProvider>
           <TaskProvider>
             <NotificationProvider>
