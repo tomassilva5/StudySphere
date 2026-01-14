@@ -5,7 +5,7 @@ import { useAuth } from '@/app/providers/AuthContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { 
   HiUser, HiBell, HiGlobeAlt, HiChevronRight, 
-  HiCalendar, HiCog, HiArrowRightOnRectangle, HiCheckCircle 
+  HiCalendar, HiCog, HiArrowRightOnRectangle, HiCheckCircle, HiCheck, HiXMark 
 } from "react-icons/hi2";
 
 import Modal from '../components/Modal';
@@ -23,6 +23,7 @@ export default function Settings() {
   const [googleConnected, setGoogleConnected] = useState(false);
   const [syncing, setSyncing] = useState(false);
   const [syncSuccess, setSyncSuccess] = useState(false);
+  const [passwordSuccess, setPasswordSuccess] = useState(false);
 
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -31,6 +32,9 @@ export default function Settings() {
   const [hasNumber, setHasNumber] = useState(false);
   const [hasCase, setHasCase] = useState(false);
   const [hasLength, setHasLength] = useState(false);
+
+  const isPasswordValid = hasNumber && hasCase && hasLength;
+  const isFormValid = password !== '' && confirmPassword !== '' && isPasswordValid && password === confirmPassword;
 
   // Validação em tempo real (Igual ao Register)
   useEffect(() => {
@@ -76,20 +80,17 @@ export default function Settings() {
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validar password se o utilizador tentar mudar
-    if (password || confirmPassword) {
-      if (!password || !confirmPassword) {
-        setError('Preencha ambos os campos de palavra-passe.');
-        return;
-      }
-      if (password !== confirmPassword) {
-        setError('As palavras-passe não coincidem.');
-        return;
-      }
-      if (password.length < 8) {
-        setError('A palavra-passe deve ter pelo menos 8 caracteres.');
-        return;
-      }
+    if (!password || !confirmPassword) {
+      setError('Preencha ambos os campos de palavra-passe.');
+      return;
+    }
+    if (!isPasswordValid) {
+      setError('A palavra-passe deve ter pelo menos 8 caracteres e incluir maiúsculas, minúsculas e um número.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError('As palavras-passe não coincidem.');
+      return;
     }
 
     try {
@@ -109,6 +110,8 @@ export default function Settings() {
         setIsEditModalOpen(false);
         setPassword('');
         setConfirmPassword('');
+        setPasswordSuccess(true);
+        setTimeout(() => setPasswordSuccess(false), 3000);
       } else {
         const data = await response.json().catch(() => ({}));
         setError(data.message || 'Erro ao atualizar perfil.');
@@ -154,7 +157,7 @@ export default function Settings() {
     </div>
   );
 
-  const SettingItem = ({ icon: Icon, label, onClick }: { icon: any, label: string, onClick?: () => void }) => (
+  const SettingItem = ({ icon: Icon, label, onClick, color }: { icon: any, label: string, onClick?: () => void, color?: string }) => (
     <button
       onClick={onClick || (() => router.push('/development'))}
       className="w-full flex items-center justify-between p-4 hover:bg-white/5 transition-colors border-b border-gray-700/50 last:border-0"
@@ -163,7 +166,7 @@ export default function Settings() {
         <div className="p-2 rounded-lg bg-gray-800/50 flex items-center justify-center">
           <Icon size={20} style={{ fill: 'url(#blue-green-gradient)' }} />
         </div>
-        <span className="text-gray-200 font-medium">{label}</span>
+        <span className={`text-gray-200 font-medium ${color || ''}`}>{label}</span>
       </div>
       <HiChevronRight className="text-gray-500" size={20} />
     </button>
@@ -177,7 +180,7 @@ export default function Settings() {
         <div className="bg-[#1C3B4F]/50 backdrop-blur-sm border border-gray-700/50 rounded-2xl p-6 mb-8 flex items-center gap-4 shadow-md">
           <div className="relative h-16 w-16 rounded-full bg-gradient-to-r from-[#57F177] to-[#4CB2D8] p-[2px]">
             <div className="relative h-full w-full rounded-full overflow-hidden bg-[#06141F] flex items-center justify-center">
-               <HiUser className="h-8 w-8" style={{ fill: 'url(#blue-green-gradient)' }} />
+              <HiUser className="h-8 w-8" style={{ fill: 'url(#blue-green-gradient)' }} />
             </div>
           </div>
           <div>
@@ -210,9 +213,16 @@ export default function Settings() {
         </div>
 
         {syncSuccess && (
-          <div className="fixed top-20 left-1/2 transform -translate-x-1/2 bg-[#57F177] text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 animate-bounce z-50">
+          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[#57F177] text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 z-50">
             <HiCheckCircle size={24} />
             <span className="font-bold">Calendário sincronizado!</span>
+          </div>
+        )}
+
+        {passwordSuccess && (
+          <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-[#57F177] text-white px-6 py-3 rounded-xl shadow-lg flex items-center gap-2 z-50">
+            <HiCheckCircle size={24} />
+            <span className="font-bold">Palavra-passe alterada com sucesso!</span>
           </div>
         )}
 
@@ -240,7 +250,15 @@ export default function Settings() {
               <div className="opacity-50">
                 <InputField id="username" label="Nome de Utilizador (Não editável)" value={user?.username || ''} onChange={() => {}} />
               </div>
+              <InputField id="password" label="Nova Palavra-passe" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
               <InputField id="confirm" label="Confirmar Palavra-passe" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} />
+              {password.length > 0 && (
+                <div className="mt-1 pl-2 space-y-1">
+                  <ValidationItem isValid={hasNumber} text="Incluir um número" />
+                  <ValidationItem isValid={hasCase} text="Maiúsculas e minúsculas" />
+                  <ValidationItem isValid={hasLength} text="Mínimo 8 caracteres" />
+                </div>
+              )}
               {confirmPassword !== '' && password !== confirmPassword && (
                 <p className="text-red-400 text-[10px] pl-2 font-medium">As palavras-passe não coincidem.</p>
               )}
@@ -274,7 +292,7 @@ export default function Settings() {
             <div className="flex flex-col gap-3">
               <button 
                 onClick={() => { logout(); router.push('/login'); }} 
-                className="w-full rounded-xl py-3.5 text-base font-bold text-white shadow-lg bg-gradient-to-r from-[#57F177] to-[#4CB2D8] transition-all"
+                className="w-full rounded-xl py-3.5 text-base font-bold text-red-500 shadow-lg bg-red-500/10 border border-red-500/50 hover:bg-red-500/20 transition-all"
               >
                 Sim, terminar sessão
               </button>

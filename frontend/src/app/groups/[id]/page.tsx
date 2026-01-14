@@ -450,7 +450,7 @@ export default function GroupDetailPage() {
       {/* Content */}
       <div className={contentWrapperClass}>
         {activeTab === 'tasks' ? (
-          <>
+          <div className="relative pb-20">
             <div className="space-y-3">
               {tasks.length === 0 ? (
                 <div className="text-center py-12">
@@ -501,8 +501,10 @@ export default function GroupDetailPage() {
                 ))
               )}
             </div>
-            <ButtonAdd onClick={() => setShowTaskModal(true)} />
-          </>
+            <div className="fixed bottom-20 right-6 z-40">
+              <ButtonAdd onClick={() => setShowTaskModal(true)} />
+            </div>
+          </div>
         ) : (
           <div className="flex flex-col h-full">
             {/* Indicador de status WebSocket */}
