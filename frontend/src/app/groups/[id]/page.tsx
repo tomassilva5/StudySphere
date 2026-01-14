@@ -147,10 +147,8 @@ export default function GroupDetailPage() {
     if (activeTab === 'chat') {
       fetchMessages();
       
-      // Conectar WebSocket - usa o hostname atual (funciona local e em rede)
-      const socketUrl = typeof window !== 'undefined' 
-        ? `http://${window.location.hostname}:3000`
-        : 'http://localhost:3000';
+      // Conectar WebSocket - usa URL configurada em env
+      const socketUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
       
       const socket = io(socketUrl, {
         withCredentials: true,
