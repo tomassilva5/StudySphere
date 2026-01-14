@@ -85,8 +85,10 @@ export default function GroupDetailPage() {
   useEffect(() => {
     const fetchGroupDetails = async () => {
       try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+        
         // Carregar ID do usuário atual
-        const userResponse = await fetch('/api/v1/users/me', {
+        const userResponse = await fetch(`${apiUrl}/api/v1/users/me`, {
           credentials: 'include',
         });
         
@@ -95,7 +97,7 @@ export default function GroupDetailPage() {
           setCurrentUserId(userData.id);
         }
 
-        const response = await fetch(`/api/v1/groups/${groupId}`, {
+        const response = await fetch(`${apiUrl}/api/v1/groups/${groupId}`, {
           credentials: 'include',
         });
 
@@ -131,7 +133,8 @@ export default function GroupDetailPage() {
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        const response = await fetch(`/api/v1/groups/${groupId}/messages`, {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+        const response = await fetch(`${apiUrl}/api/v1/groups/${groupId}/messages`, {
           credentials: 'include',
         });
 
@@ -198,8 +201,9 @@ export default function GroupDetailPage() {
     setMessageInput(''); // Limpar imediatamente para melhor UX
 
     try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
       // SEMPRE salvar na BD primeiro
-      const response = await fetch(`/api/v1/groups/${groupId}/messages`, {
+      const response = await fetch(`${apiUrl}/api/v1/groups/${groupId}/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -244,7 +248,8 @@ export default function GroupDetailPage() {
     ));
     
     try {
-      const response = await fetch(`/api/v1/events/${taskId}`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+      const response = await fetch(`${apiUrl}/api/v1/events/${taskId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -286,7 +291,8 @@ export default function GroupDetailPage() {
     setTasks(tasks.filter(t => t.id !== taskId));
     
     try {
-      const response = await fetch(`/api/v1/events/${taskId}`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+      const response = await fetch(`${apiUrl}/api/v1/events/${taskId}`, {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -311,6 +317,7 @@ export default function GroupDetailPage() {
 
   const handleCreateTask = async (taskData: any) => {
     try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
       const payload = {
         titulo: taskData.titulo,
         descricao: taskData.descricao || '',
@@ -322,7 +329,7 @@ export default function GroupDetailPage() {
         grupo_id: groupId
       };
 
-      const response = await fetch('/api/v1/events', {
+      const response = await fetch(`${apiUrl}/api/v1/events`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -333,7 +340,7 @@ export default function GroupDetailPage() {
         const createdEvent = await response.json();
         
         // Adicionar evento ao grupo
-        const linkResponse = await fetch(`/api/v1/events/${createdEvent.id}/groups`, {
+        const linkResponse = await fetch(`${apiUrl}/api/v1/events/${createdEvent.id}/groups`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
