@@ -36,6 +36,8 @@ No installation or local setup is required to test the prototype. Simply access 
 
 [https://study-sphere-iota.vercel.app/](https://study-sphere-iota.vercel.app/)
 
+To view the app in its intended mobile format, press right-click and select Inspect and toggle the Device Toolbar to simulate a mobile screen.
+
 ---
 
 ## Testing the Application
