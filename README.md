@@ -2,6 +2,8 @@
 
 StudySphere is an academic planning and collaboration platform. It helps students manage tasks, organize study groups, schedule events, and collaborate in real-time.
 
+---
+
 ## Features
 
 **Task Management:** Create, edit, and delete academic tasks with categorized filters.
@@ -14,6 +16,8 @@ StudySphere is an academic planning and collaboration platform. It helps student
 
 **Accessibility Focus:** High-contrast UI toasts and auditory feedback for time-sensitive events.
 
+---
+
 ## Tech Stack
 
 **Frontend:** Next.js, React, TypeScript, Tailwind CSS.
@@ -24,9 +28,15 @@ StudySphere is an academic planning and collaboration platform. It helps student
 
 **Deployment:** Hosted on Vercel.
 
-## Online Access
+---
 
-Test the functional prototype here: [https://study-sphere-iota.vercel.app/](https://study-sphere-iota.vercel.app/)
+## Usage
+
+No installation or local setup is required to test the prototype. Simply access the functional application hosted on Vercel at:
+
+[https://study-sphere-iota.vercel.app/](https://study-sphere-iota.vercel.app/)
+
+---
 
 ## Testing the Application
 
@@ -40,6 +50,7 @@ Test the functional prototype here: [https://study-sphere-iota.vercel.app/](http
 
 **Audit:** Check the notification bell for a persistent, scrollable log of all triggered alerts.
 
+---
 
 ## License & Authors
 
