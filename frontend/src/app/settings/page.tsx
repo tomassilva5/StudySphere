@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useAuth } from '@/app/providers/AuthContext';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { 
@@ -12,7 +12,7 @@ import Modal from '../components/Modal';
 import StickyHeaderDate from '../components/StickyHeaderDate';
 import InputField from '../components/InputField';
 
-export default function Settings() {
+function SettingsContent() {
   const { logout, user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -53,7 +53,8 @@ export default function Settings() {
     // Check Google connection status on page load
     const checkGoogleStatus = async () => {
       try {
-        const response = await fetch('/api/v1/users/google-status', {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+        const response = await fetch(`${apiUrl}/api/v1/users/google-status`, {
           credentials: 'include',
         });
         
@@ -99,7 +100,8 @@ export default function Settings() {
         palavra_passe: password || undefined,
       };
 
-      const response = await fetch('/api/v1/users/edit', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+      const response = await fetch(`${apiUrl}/api/v1/users/edit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -123,14 +125,15 @@ export default function Settings() {
   };
 
   const handleConnectGoogle = async () => {
-    // Usar o proxy do Next.js para manter os cookies
-    window.location.href = '/api/v1/auth/google/auth';
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+    window.location.href = `${apiUrl}/api/v1/auth/google/auth`;
   };
 
   const handleSyncCalendar = async () => {
     setSyncing(true);
     try {
-      const response = await fetch('/api/v1/google/calendar/sync', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+      const response = await fetch(`${apiUrl}/api/v1/google/calendar/sync`, {
         method: 'POST',
         credentials: 'include', // Importante: envia cookies httpOnly
       });
@@ -363,5 +366,17 @@ export default function Settings() {
         </Modal>
       )}
     </div>
+  );
+}
+
+export default function Settings() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen pb-24 flex items-center justify-center" style={{ background: 'var(--background)' }}>
+        <div className="text-gray-400">A carregar...</div>
+      </div>
+    }>
+      <SettingsContent />
+    </Suspense>
   );
 }

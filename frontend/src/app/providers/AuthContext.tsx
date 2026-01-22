@@ -24,8 +24,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
 
-  // URL base do backend - agora usa proxy do Next.js na mesma origem
-  const API_URL = '/api/v1';
+  // URL base do backend - usa variável de ambiente
+  const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
   useEffect(() => {
     const checkSession = async () => {
@@ -40,7 +40,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
 
         // Tentar refresh se não houver userData
-        const response = await fetch(`${API_URL}/auth/refresh`, {
+        const response = await fetch(`${API_URL}/api/v1/auth/refresh`, {
           method: 'POST',
           credentials: 'include',
         });
@@ -76,7 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       : { nome_utilizador: id, palavra_passe: pw };
 
     try {
-      const response = await fetch(`${API_URL}/auth/login`, {
+      const response = await fetch(`${API_URL}/api/v1/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -118,7 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     try {
-      const response = await fetch(`${API_URL}/auth/register`, {
+      const response = await fetch(`${API_URL}/api/v1/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -142,7 +142,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
-    fetch(`${API_URL}/auth/logout`, {
+    fetch(`${API_URL}/api/v1/auth/logout`, {
       method: 'POST',
       credentials: 'include',
     }).finally(() => {

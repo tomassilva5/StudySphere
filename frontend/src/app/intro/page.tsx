@@ -23,17 +23,17 @@ export default function IntroPage() {
     {
       title: 'Calendário Centralizado',
       description: 'Visualiza tudo num só calendário. Sincroniza e importa eventos do Google Calendar e Outlook.',
-      image: '/introImages/Slidee2.png',
+      image: '/IntroImages/Slidee2.png',
     },
     {
       title: 'Gere as tuas Tarefas',
       description: 'Organiza o teu estudo, define prioridades e acompanha o teu progresso diário.',
-      image: '/introImages/Imagem3.png',
+      image: '/IntroImages/Imagem3.png',
     },
     {
       title: 'Trabalho em Equipa',
       description: 'Cria grupos, envia mensagens, realiza chamadas e colabora com os teus colegas de forma eficiente.',
-      image: '/introImages/Imagem4.png',
+      image: '/IntroImages/Imagem4.png',
     },
   ];
 

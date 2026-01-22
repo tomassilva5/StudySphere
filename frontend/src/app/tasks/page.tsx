@@ -343,7 +343,7 @@ export default function TasksPage() {
       </div>
 
       {/* Container fixo para filtros, seletor de data e botão */}
-      <div className="sticky top-14 z-30 pb-2" style={{ background: 'var(--background)' }}>
+      <div className="sticky top-14 z-30 pb-4" style={{ background: '#06141F' }}>
         {/* Filtros / Tabs */}
         <div className="flex px-4 gap-2 mb-3 overflow-x-auto pb-2 scrollbar-hide pt-2" role="tablist">
           {/* Botão "Todas" */}
@@ -384,8 +384,8 @@ export default function TasksPage() {
         </div>
 
         {/* Seletor de Dia */}
-        <div className="px-4 mb-2">
-          <div className="bg-[#1C3B4F]/50 backdrop-blur-sm border border-gray-700/50 rounded-xl p-3 flex items-center justify-between">
+        <div className="px-4">
+          <div className="bg-[#1C3B4F] border border-gray-700/50 rounded-xl p-3 flex items-center justify-between">
             <button
               onClick={goToPreviousDay}
               className="p-1.5 hover:bg-white/10 rounded-lg transition-colors"
@@ -412,7 +412,7 @@ export default function TasksPage() {
       </div>
 
       {/* Lista de Tarefas */}
-      <div className="flex-1 px-4 space-y-3 mb-16">
+      <div className="flex-1 px-4 space-y-3 mb-16 mt-4">
         {filteredTasks.length > 0 ? (
           Object.entries(groupedTasks).map(([type, tasks]) => (
             <div key={type} className="space-y-3">

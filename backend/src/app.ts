@@ -14,8 +14,33 @@ app.use(express.json())
 app.use(cookieParser())
 
 // Allow the frontend origin and cookies for session auth
+const baseAllowedOrigins = [
+  'https://study-sphere-idea.vercel.app',
+  'http://localhost:5000',
+  'http://localhost:3000',
+  FRONTEND_URL?.replace(/\/$/, '') || undefined,
+].filter(Boolean) as string[];
+
+const isAllowedOrigin = (origin?: string | null) => {
+  if (!origin) return true; // allow non-browser clients
+  const cleaned = origin.replace(/\/$/, '');
+  if (baseAllowedOrigins.includes(cleaned)) return true;
+  // allow any vercel preview/production domains
+  try {
+    const hostname = new URL(cleaned).hostname;
+    if (/\.vercel\.app$/i.test(hostname)) return true;
+  } catch (err) {
+    console.warn('Invalid origin format', origin, err);
+  }
+  return false;
+};
+
 app.use(cors({
-  origin: FRONTEND_URL || '*',
+  origin: function(origin, callback) {
+    if (isAllowedOrigin(origin)) return callback(null, true);
+    console.warn('Blocked CORS origin:', origin);
+    return callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
 }))
 
@@ -25,8 +50,13 @@ const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: {
-    origin: FRONTEND_URL || '*',
-    credentials: true, 
+    origin: function(origin, callback) {
+      if (isAllowedOrigin(origin)) return callback(null, true);
+      console.warn('Blocked Socket.io origin:', origin);
+      return callback(new Error('Not allowed by CORS for socket'));
+    },
+    credentials: true,
+    methods: ["GET", "POST"]
   }
 });
 

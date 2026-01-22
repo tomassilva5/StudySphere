@@ -85,8 +85,10 @@ export default function GroupDetailPage() {
   useEffect(() => {
     const fetchGroupDetails = async () => {
       try {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+        
         // Carregar ID do usuário atual
-        const userResponse = await fetch('/api/v1/users/me', {
+        const userResponse = await fetch(`${apiUrl}/api/v1/users/me`, {
           credentials: 'include',
         });
         
@@ -95,7 +97,7 @@ export default function GroupDetailPage() {
           setCurrentUserId(userData.id);
         }
 
-        const response = await fetch(`/api/v1/groups/${groupId}`, {
+        const response = await fetch(`${apiUrl}/api/v1/groups/${groupId}`, {
           credentials: 'include',
         });
 
@@ -131,7 +133,8 @@ export default function GroupDetailPage() {
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        const response = await fetch(`/api/v1/groups/${groupId}/messages`, {
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+        const response = await fetch(`${apiUrl}/api/v1/groups/${groupId}/messages`, {
           credentials: 'include',
         });
 
@@ -147,10 +150,8 @@ export default function GroupDetailPage() {
     if (activeTab === 'chat') {
       fetchMessages();
       
-      // Conectar WebSocket - usa o hostname atual (funciona local e em rede)
-      const socketUrl = typeof window !== 'undefined' 
-        ? `http://${window.location.hostname}:3000`
-        : 'http://localhost:3000';
+      // Conectar WebSocket - usa URL configurada em env
+      const socketUrl = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:3000';
       
       const socket = io(socketUrl, {
         withCredentials: true,
@@ -200,8 +201,9 @@ export default function GroupDetailPage() {
     setMessageInput(''); // Limpar imediatamente para melhor UX
 
     try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
       // SEMPRE salvar na BD primeiro
-      const response = await fetch(`/api/v1/groups/${groupId}/messages`, {
+      const response = await fetch(`${apiUrl}/api/v1/groups/${groupId}/messages`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -246,7 +248,8 @@ export default function GroupDetailPage() {
     ));
     
     try {
-      const response = await fetch(`/api/v1/events/${taskId}`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+      const response = await fetch(`${apiUrl}/api/v1/events/${taskId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -288,7 +291,8 @@ export default function GroupDetailPage() {
     setTasks(tasks.filter(t => t.id !== taskId));
     
     try {
-      const response = await fetch(`/api/v1/events/${taskId}`, {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+      const response = await fetch(`${apiUrl}/api/v1/events/${taskId}`, {
         method: 'DELETE',
         credentials: 'include',
       });
@@ -313,18 +317,21 @@ export default function GroupDetailPage() {
 
   const handleCreateTask = async (taskData: any) => {
     try {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
       const payload = {
         titulo: taskData.titulo,
         descricao: taskData.descricao || '',
         data_inicio: taskData.data_inicio,
         data_fim: taskData.data_fim,
         e_virtual: false,
+        // Prioridade é obrigatória no schema Prisma
+        prioridade: 'MEDIA',
         categoria: 'Estudo_Grupo',
         estado: 'agendado',
         grupo_id: groupId
       };
 
-      const response = await fetch('/api/v1/events', {
+      const response = await fetch(`${apiUrl}/api/v1/events`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
@@ -335,7 +342,7 @@ export default function GroupDetailPage() {
         const createdEvent = await response.json();
         
         // Adicionar evento ao grupo
-        const linkResponse = await fetch(`/api/v1/events/${createdEvent.id}/groups`, {
+        const linkResponse = await fetch(`${apiUrl}/api/v1/events/${createdEvent.id}/groups`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           credentials: 'include',
